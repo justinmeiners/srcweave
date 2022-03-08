@@ -1,0 +1,86 @@
+#!/bin/sh
+
+set -e
+
+echo '<!DOCTYPE html>'
+echo '<html lang="en">'
+echo '<head>'
+echo '<meta charset="utf-8">'
+
+echo "<title>$LIT_TITLE</title>"
+
+# prettify highlighting
+echo '<link rel="stylesheet" href="google-code-prettify/prettify.css">'
+echo '<link rel="stylesheet" href="styles/prettify-theme.css">'
+
+echo '<script defer src="google-code-prettify/prettify.js"></script>'
+
+for TYPE in $LIT_TYPES
+do
+    FORMAT='<script defer src="google-code-prettify/%s"></script>\n'
+    case "$TYPE" in
+        "emacs-lisp")printf "$FORMAT" 'lang-el.js';;
+        "common-lisp") printf "$FORMAT" 'lang-lisp.js';;
+        "css") printf "$FORMAT" 'lang-css.js';;
+        "go") printf "$FORMAT" 'lang-go.js';;
+        "haskell") printf "$FORMAT" 'lang-hs.js';;
+        "lua") printf "$FORMAT" 'lang-lua.js';;
+        "matlab") printf "$FORMAT" 'lang-matlab.js';;
+        "rust") printf "$FORMAT" 'lang-rs.js';;
+        "scala") printf "$FORMAT" 'lang-scala.js';;
+        "scheme") printf "$FORMAT" 'lang-scm.js';;
+        "sql") printf "$FORMAT" 'lang-sql.js';;
+        "swift") printf "$FORMAT" 'lang-swift.js';;
+        "tex") printf "$FORMAT" 'lang-tex.js';;
+        *);;
+    esac
+done
+
+echo '<script defer src="google-code-prettify/run_prettify.js"></script>'
+
+# KaTex math
+if [ -n "$LIT_MATH" ]
+then
+    echo '<link rel="stylesheet" href="katex/katex.min.css">'
+    echo '<script defer src="katex/katex.min.js"></script>'
+
+    echo "<script>
+    function addMath() {
+        var macros = {};
+        var blocks = document.querySelectorAll('.math-block');
+
+        for (var element of blocks) {
+            katex.render(element.textContent, element, {
+                throwOnError: false,
+                displayMode: true,
+                macros: macros
+            });
+        }
+
+        var inline = document.querySelectorAll('.math');
+
+        for (var element of inline) {
+            katex.render(element.textContent, element, {
+                throwOnError: false,
+                displayMode: false,
+                macros: macros
+            });
+        }
+    }
+    </script>"
+fi
+
+echo '<link rel="stylesheet" href="styles/main.css">'
+echo "</head>"
+
+if [ -n "$LIT_MATH" ]
+then
+    echo '<body onload="addMath()">'
+else
+    echo ""
+fi
+
+cat
+
+echo '</body>'
+echo '</html>'

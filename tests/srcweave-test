@@ -1,0 +1,7 @@
+#!/bin/sh
+# Requires that the package is loadable by quicklisp.
+
+sbcl --noinform --non-interactive \
+    --eval '(ql:quickload "srcweave" :silent t)' \
+    --eval "(srcweave:toplevel)" \
+    --end-toplevel-options "$@"

@@ -1,0 +1,66 @@
+# Chapter 2
+
+## Introduction
+
+This is another chapter.
+
+## Growing the vector
+
+Vectors work by growing the buffer to meet capactiy.
+The most primitive implementation is to free the old buffer,
+allocate a new one (with extra space), and then copy the old data in!
+`realloc` helps us with this.
+
+Choosing how big to make the buffer is tricky.
+We don't want to overallocate memoery, and we don't want to do too much
+allocation and copying.
+
+--- push back
+void push_back(const T& x)
+{
+    if (size + 1 > capacity)
+    {
+        if (capacity == 0)
+        {
+            capacity = 16;
+        }
+        else if (capacity < 4096)
+        {
+            capacity *= 2;
+        }
+        else
+        {
+            capacity = (capacity * 3) / 2;
+        }
+        data = static_cast<T*>(realloc(data, sizeof(T) * capacity));
+    }
+    data[size] = x;
+    ++size;
+}
+---
+
+Note that chapter 1 depends on the block above.
+
+## Testing
+
+We also depend on chapter 1 blocks.
+Files can reference each other circularly.
+
+--- main.cpp
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+
+@{vector class}
+
+int main() {
+    vector2<int> v;
+    v.push_back(3);
+    v.push_back(2);
+    v.push_back(5);
+}
+---
+
+# Chapter 3
+
+Nothing here but a test.

@@ -1,0 +1,17 @@
+# Circular dependencies
+
+--- a
+Duck
+@{b}
+---
+
+--- b
+Duck
+@{c}
+---
+
+--- c
+Goose
+@{a}
+---
+

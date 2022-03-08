@@ -1,0 +1,6 @@
+function map(f, array) {
+    var result = [];
+    for (var i = 0; i < array.length; ++i)
+        result.append(f(array[i]));
+    return result;
+}

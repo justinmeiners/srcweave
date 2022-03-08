@@ -1,0 +1,16 @@
+#include <assert.h>
+
+int factorial(int n)
+{
+    int acc = 1;
+    while (n > 0)
+    {
+        acc *= n;
+        --n;
+    }
+    return acc;
+}
+
+int main() {
+   return (factorial(4) != 24);
+}

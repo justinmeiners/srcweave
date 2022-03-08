@@ -1,0 +1,218 @@
+# Literate commands
+
+This document will teach you the basic commands of literate, while also acting as a test for all the basic features that are available.
+One of the great advantages of literate programming is that information and code like this are combined into one useful form.
+
+## Including blocks
+
+Literate programming is about decomposing code into blocks and then composing them.
+The fundamental operation is block inclusion.
+
+For this example, we are going to use more complex example than "hello world"
+in order to test multiple inclusion levels.
+
+One way to design programs is to focus on algorithms and data structures.
+
+--- program design
+@{data structures}
+
+@{algorithms}
+---
+
+But of course we have all this other stuff we have to worry about that the compiler needs.
+--- sample.c
+@{includes}
+
+@{program design}
+
+@{tests}
+---
+
+For this sample, we will make a linked list:
+
+--- data structures
+typedef struct ListNode
+{
+    int val;
+    struct ListNode *next;
+} ListNode;
+---
+
+An important algorithm is the length: 
+
+--- algorithms 
+int list_length(ListNode* head)
+{
+    int n = 0;
+    while (head)
+    {
+       ++n;
+       head = head->next;
+    }
+    return n;
+}
+---
+
+Here is a test for the algorithm:
+
+--- test length algorithm
+ListNode* c = malloc(sizeof(ListNode));
+c->val = 3;
+c->next = NULL;
+
+ListNode* b = malloc(sizeof(ListNode));
+b->val = 2;
+b->next = c;
+
+ListNode* a = malloc(sizeof(ListNode));
+a->val = 1;
+a->next = b;
+
+printf("%d\n", list_length(a));
+---
+
+All of this will run in a C main loop:
+
+--- tests
+int main()
+{
+   @{test length algorithm};
+}
+---
+
+Lastly, there are some boring headers to include.
+
+--- includes
+#include <stdio.h>
+#include <stdlib.h>
+---
+
+We can also reference blocks in prose.
+Note that @{algorithms} is `O(n)`. 
+
+## Formatting and whitespace
+
+Outputing source code that looks the way you expect is important.
+So, let's look at some formatting details.
+
+We can include blocks by name.
+Even though we have multiple includes here, it should all be one line,
+because the block contents are a single line.
+
+--- multiple-include.c
+int array[] = { @{num 1}, @{num 2} };
+---
+
+--- num 1
+1
+---
+
+--- num 2
+2
+---
+
+
+If we include a block with multiple lines, it should include all of them.
+The included lines should be padded with the whitespace of the include statement.
+
+--- multiline-include.c
+int nums[] = {
+    @{all numbers}
+};
+---
+
+--- all numbers
+1,
+2,
+3,
+4,
+5
+---
+
+## Block operators
+
+We can define blocks in parts by appending them together.
+For example, every C program starts with a header.
+--- append.c
+#include <stdio.h>
+---
+
+Then we have a main signature.
+--- append.c += 
+int main(int argc, const char* argv[])
+---
+
+Then the body:
+--- append.c +=
+{
+    printf("Hello, World!");
+    return 0;
+}
+---
+
+Which one does @{append.c} refer to?
+
+We can also redefine blocks.
+One usage of this is to progressively refine a piece of code.
+Let's look at a classic function
+--- redefine.c
+#include <assert.h>
+
+@{factorial}
+
+int main() {
+   return (factorial(4) != 24);
+}
+---
+
+Here is a possible implementation
+--- factorial
+int factorial(int n)
+{
+    if (n <= 0) return 1;
+    return n * factorial(n - 1);
+}
+--- 
+This is pretty hard on the stack, so let's try a loop version:
+--- factorial :=
+int factorial(int n)
+{
+    int acc = 1;
+    while (n > 0)
+    {
+        acc *= n;
+        --n;
+    }
+    return acc;
+}
+---
+The block above should be using the final definition.
+
+## Modifiers 
+
+Normally a block only becomes a file if it has a file extension,
+but you may still want to create files that don't have extnesions.
+For example `makefile` and other shell scripts.
+It is still advantagous to author these in your literate file.
+
+In these cases we can use a modifier to explicilty mark them as a root block.
+
+--- no-extension --- file
+#!/bin/sh
+echo "Hello, World!"
+---
+
+Sometimes you have a block that's important for source, but too boring to include in the documentation.
+You can use the modifier `noWeave` for these.
+Here is one:
+--- hidden.c --- noWeave
+int boring_function() 
+{
+    return 10;
+}
+----
+But, you will notice it does not appear in the documentation.
+References to @{hidden.c} will not have references.
+
+
+

@@ -1,0 +1,41 @@
+# Chapter 1
+
+## Introduction
+
+This is chapter which can contain blocks and reference blocks on other files and chapters.
+
+## Vector
+
+How do you implement a C++ vector class?
+Let's give an overview and finish it off in the next chapter.
+
+--- vector class
+template<typename T>
+struct vector2 {
+    @{members}
+    @{constructor}
+    @{push back}
+};
+---
+
+Size is how many elements are in the vector.
+Capacity is how large the buffer is.
+We have the invariant that `capacicty >= size`.
+
+--- members
+T* data;
+size_t size;
+size_t capacity;
+---
+
+## Constructor and destructor
+
+Always need these.
+
+--- constructor
+vector2() : size(0), capacity(0), data(NULL) {}
+
+~vector2() {
+    if (data) free(data);
+}
+---

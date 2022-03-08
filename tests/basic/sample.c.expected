@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct ListNode
+{
+    int val;
+    struct ListNode *next;
+} ListNode;
+
+int list_length(ListNode* head)
+{
+    int n = 0;
+    while (head)
+    {
+       ++n;
+       head = head->next;
+    }
+    return n;
+}
+
+int main()
+{
+   ListNode* c = malloc(sizeof(ListNode));
+   c->val = 3;
+   c->next = NULL;
+   
+   ListNode* b = malloc(sizeof(ListNode));
+   b->val = 2;
+   b->next = c;
+   
+   ListNode* a = malloc(sizeof(ListNode));
+   a->val = 1;
+   a->next = b;
+   
+   printf("%d\n", list_length(a));;
+}

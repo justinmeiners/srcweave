@@ -1,0 +1,359 @@
+#!/bin/sh
+
+set -e
+
+usage () {
+    echo "srcweave-format-init [OPTIONS] DIR"
+    echo "-f\t force redownlood and regeneration" 
+    echo "-m\t download resources for math"
+}
+
+while getopts "fm" opt
+do
+  case $opt in
+    f) FORCE="1"   ;;
+    m) MATH="1"    ;;
+    *) usage 
+       exit 1
+  esac
+done
+shift $((OPTIND-1))
+
+DIR=$1
+
+if [ -z "$DIR" ]
+then
+    echo "specify a directory"
+    exit 1
+fi
+
+MAIN_CSS="styles/main.css"
+PRETTIFY_THEME_CSS="styles/prettify-theme.css"
+
+mkdir -p "$DIR"
+echo "initializing: $DIR"
+cd "$DIR"
+
+if [ -n "$FORCE" ]
+then
+    echo "removing old files."
+    rm -rf "katex"
+    rm -rf "google-code-prettify"
+    rm -f "$MAIN_CSS"
+    rm -f "$PRETTIFY_THEME_CSS"
+fi
+
+if [ -n "$MATH" ]
+then
+    if [ -d "katex" ]
+    then
+        echo "katex already downloaded"
+    else
+        echo "Downloading KaTex"
+        curl -L https://github.com/KaTeX/KaTeX/releases/download/v0.15.2/katex.tar.gz -o katex.tar.gz
+        tar -zxf katex.tar.gz
+        rm katex.tar.gz
+    fi
+
+fi
+
+if [ -d "google-code-prettify" ]
+then
+    echo "prettify already downloaded"
+else
+    echo "Downloading prettify"
+    curl -L https://github.com/googlearchive/code-prettify/raw/2015-12-04/distrib/prettify-small.tar.bz2 -o prettify.tar.bz2
+    tar -xf prettify.tar.bz2
+    rm prettify.tar.bz2
+fi
+
+mkdir -p styles
+
+if [ -f "$MAIN_CSS" ]
+then
+    echo "$MAIN_CSS already written"
+else
+    echo "Writing $MAIN_CSS"
+    cat > "$MAIN_CSS" << EOF
+body {
+    min-width: 200px;
+    max-width: 850px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+    font-size: 14pt;
+}
+
+h1 {
+    text-align: center;
+}
+
+p {
+    line-height: 1.3;
+}
+
+li {
+    margin-bottom: 0.3rem;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+pre {
+    margin: 1rem 0;
+}
+
+pre.prettyprint {
+    border: none;
+}
+
+blockquote {
+    margin: 1.5rem 3rem;
+}
+
+/* document links */
+
+a {
+    text-decoration: none;
+}
+
+a:link, .block-link a:visited {
+    color: #0046b3;
+}
+
+a:hover, a:active {
+    text-decoration: underline;
+    color: #4d92ff;
+}
+
+a:visited {
+    color: #662e99;
+}
+
+/* code blocks */
+
+code, .block-header {
+    font-size: 10pt;
+    font-family: Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;
+}
+
+.block-header, .block-header + pre.prettyprint {
+    background-color: #f9f8f4;
+    border: 1px solid #c7c4b4;
+    box-sizing: border-box;
+}
+
+.block-header {
+    display: inline-block;
+
+    /* allows the header to overlap the code block to hide part of the top border */
+    position: relative;
+    z-index: 6;
+
+    border-top-left-radius: 0.6rem;
+    border-top-right-radius: 0.6rem;
+    border-bottom-width: 0;
+
+    padding: 0.4rem 0.6rem;
+}
+
+.block-title {
+    font-weight: normal;
+}
+
+.block-title a {
+    /* this causes navigating to a block link to scroll you just a few pixels above the block header */
+    margin-top: -1rem;
+    padding-top: 1rem;
+}
+
+.block-title, .block-header a:link, .block-header a:visited {
+    color: #262521;
+}
+
+.block-header a:hover, .block-header a:active {
+    color: #737372;
+}
+
+.code-block pre.prettyprint {
+    padding: 0.6rem;
+    white-space: pre-wrap;
+    border-radius: 0.6rem;
+}
+
+.code-block .block-header + pre.prettyprint {
+    /* overlap to the top 1px of the code block with the header so that the top border is partially obscured */
+    position: relative;
+    z-index: 5;
+    margin-top: -1px;
+
+    border-top-left-radius: 0;
+}
+
+.block-usages {
+    margin-top: -1rem;
+}
+
+.block-usages small {
+    display: inline-block;
+    margin: 0.4rem 0.6rem;
+    font-size: 11pt;
+    color: #363535;
+}
+
+.block-usages a, .block-usages span {
+    padding: 0 0.5rem;
+    margin-left: 0.1rem;
+}
+
+.block-usages a {
+    background-color: #f9f8f4;
+    border: 1px solid #c7c6bf;
+    box-sizing: border-box;
+
+    color: #57554a;
+    border-radius: 0.3rem;
+}
+
+.block-usages a + *, .block-usages span + * {
+    margin-left: 0.2rem;
+}
+
+.block-usages a:hover, .block-usages a:active {
+    text-decoration: none;
+    background-color: #f9f9f7;
+    color: #a6a28d;
+}
+EOF
+fi
+
+if [ -f "$PRETTIFY_THEME_CSS" ]
+then
+    echo "$PRETTIFY_THEME_CSS already written"
+else
+    echo "Writing $PRETTIFY_THEME_CSS"
+    cat > "$PRETTIFY_THEME_CSS" << EOF
+/*! Color themes for Google Code Prettify | MIT License | github.com/jmblog/color-themes-for-google-code-prettify */
+/* Atelier Dune Light with modifications for srcweave */
+
+.prettyprint {
+  border: none;
+}
+
+.pln {
+  color: #20201d;
+}
+
+/* Specify class=linenums on a pre to get line numbering */
+ol.linenums {
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #999580;
+}
+
+li.L0,
+li.L1,
+li.L2,
+li.L3,
+li.L4,
+li.L5,
+li.L6,
+li.L7,
+li.L8,
+li.L9 {
+  padding-left: 1em;
+  background-color: #fefbec;
+  list-style-type: decimal;
+}
+
+@media screen {
+
+  /* string content */
+
+  .str {
+    color: #60ac39;
+  }
+
+  /* keyword */
+
+  .kwd {
+    color: #b854d4;
+  }
+
+  /* comment */
+
+  .com {
+    color: #999580;
+  }
+
+  /* type name */
+
+  .typ {
+    color: #6684e1;
+  }
+
+  /* literal value */
+
+  .lit {
+    color: #b65611;
+  }
+
+  /* punctuation */
+
+  .pun {
+    color: #20201d;
+  }
+
+  /* lisp open bracket */
+
+  .opn {
+    color: #20201d;
+  }
+
+  /* lisp close bracket */
+
+  .clo {
+    color: #20201d;
+  }
+
+  /* markup tag name */
+
+  .tag {
+    color: #d73737;
+  }
+
+  /* markup attribute name */
+
+  .atn {
+    color: #b65611;
+  }
+
+  /* markup attribute value */
+
+  .atv {
+    color: #1fad83;
+  }
+
+  /* declaration */
+
+  .dec {
+    color: #b65611;
+  }
+
+  /* variable name */
+
+  .var {
+    color: #d73737;
+  }
+
+  /* function name */
+
+  .fun {
+    color: #6684e1;
+  }
+}
+EOF
+fi

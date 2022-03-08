@@ -1,0 +1,40 @@
+# A Literate Hello, World! 
+
+## Introduction
+
+A "Hello, World" program is one which simply outputs this text.
+It originally cames from the book ["The C Programming Language"][c-programming]
+and has since become the traditional first program to implement when learning a new programming language.
+
+Here is a literate "Hello, World!".
+
+[c-programming]: https://en.wikipedia.org/wiki/The_C_Programming_Language
+
+## Implementation in C
+
+We can define codeblocks with `---`.
+
+--- hello world
+printf("Hello, World!\n");
+---
+
+Blocks can then refer to one another to be included.
+For example, all C programs need a main function.
+
+--- hello.c
+@{includes}
+
+int main() {
+    @{hello world}
+    return 0;
+}
+---
+
+We need to include `stdio.h` to use the `printf` function.
+
+--- includes
+#include <stdio.h>
+---
+
+Blocks can also be referred to in prose.
+For example @{includes}.

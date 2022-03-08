@@ -1,0 +1,43 @@
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+
+template<typename T>
+struct vector2 {
+    T* data;
+    size_t size;
+    size_t capacity;
+    vector2() : size(0), capacity(0), data(NULL) {}
+    
+    ~vector2() {
+        if (data) free(data);
+    }
+    void push_back(const T& x)
+    {
+        if (size + 1 > capacity)
+        {
+            if (capacity == 0)
+            {
+                capacity = 16;
+            }
+            else if (capacity < 4096)
+            {
+                capacity *= 2;
+            }
+            else
+            {
+                capacity = (capacity * 3) / 2;
+            }
+            data = static_cast<T*>(realloc(data, sizeof(T) * capacity));
+        }
+        data[size] = x;
+        ++size;
+    }
+};
+
+int main() {
+    vector2<int> v;
+    v.push_back(3);
+    v.push_back(2);
+    v.push_back(5);
+}

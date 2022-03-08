@@ -1,0 +1,10 @@
+*.c
+*.cpp
+*.html
+*.js
+*.scm
+*.txt
+google-code-prettify
+katex
+styles
+*.timestamp

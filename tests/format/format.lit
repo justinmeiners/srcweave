@@ -1,0 +1,239 @@
+# Weave HTML documentation
+
+## Introduction
+
+All literate source files can be "woven" into documentation.
+We use HTML, but Knuth's original uses TeX.
+
+Let's start by testing the basic formatting features.
+
+## Markdown
+
+Prose blocks can include all basic markdown features, including images:
+
+![landscape](img/landscape.jpg)
+
+Here is a test of headings:
+
+### Heading 3
+
+We can include in-text code `function` as well as blocks (but, these aren't literate blocks).
+These can be useful for diagrams or tables
+
+         _____
+       .'     `.
+      /  .-=-.  \   \ __
+      | (  C\ \  \_.'')
+     _\  `--' |,'   _/
+    /__`.____.'__.-'
+
+
+Let's link off to the [site](https://textart.io/art/2cpsdFycF8_GoABXZEbpoQeF/snail).
+
+We also have **bold** and *italic*.
+
+> Quotes work as well.
+
+## Block formatting.
+
+The basic feature is of course blocks.
+Let's try them out by solving a classic [SICP exercise][sicp].
+
+**Exercise 2.33.** Fill in the missing expressions to complete the following definitions of some basic list-manipulation operations as accumulations:
+
+--- exercise
+(define (map p sequence)
+  (accumulate (lambda (x y) @{blank 1?}) nil sequence))
+(define (append seq1 seq2)
+  (accumulate cons @{blank 2?} @{blank 3?}))
+(define (length sequence)
+  (accumulate @{blank 4?} 0 sequence))
+---
+
+Of course, to complete the exercise we need the definition of `accumulate`:
+
+--- accumulate
+(define (accumulate op initial sequence)
+ (if (null? sequence)
+  initial
+  (op (car sequence)
+   (accumulate op initial (cdr sequence)))))
+---
+
+Here are the solutions:
+
+--- blank 1?
+(cons (p x) y)
+---
+
+--- blank 2?
+seq2
+---
+
+--- blank 3?
+seq1
+---
+
+--- blank 4?
+(lambda (total x) (+ total 1))
+---
+
+For testing, let's put this all in a file:
+
+--- 2_33.scm
+(define nil '())
+
+@{accumulate}
+
+@{exercise}
+
+@{tests}
+---
+
+--- tests
+(display (map (lambda (x) (+ x 1)) (list 1 2 3 4)))
+(newline)
+(display (append (list 1 2 3) (list 4 5 6)))
+(newline)
+(display (length (list 1 2 3 4 5)))
+---
+
+[sicp]: https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/book-Z-H-15.html#%_sec_2.2
+
+## Block operators
+
+--- page body
+The
+---
+
+--- page body +=
+Quick
+---
+
+--- page body +=
+Brown
+---
+
+--- page body +=
+Fox
+---
+
+## Special characters
+
+--- page
+<html>
+   <head>
+     <title>Page!</title>
+   </head>
+   <body>
+        @{page body}
+   </body>
+</html>
+---
+
+# Default HTML formatter.
+
+## Introduction
+
+srcweave is designed in a modular UNIX way.
+One advantage of this is we can customize the appearence of HTML documentation
+without modifying the original program.
+
+We include a default format script that includes many formatting features,
+such as KaTeX for math and google-prettyify for code highlighting.
+Feel free to customize it for your own needs.
+
+
+## Code highlighting
+
+Let's try writing `map` in a few different languages:
+
+--- map.js
+function map(f, array) {
+    var result = [];
+    for (var i = 0; i < array.length; ++i)
+        result.append(f(array[i]));
+    return result;
+}
+---
+
+--- map.lisp
+(defun (map f list)
+ (if (null list)
+  nil
+  (cons (f (car list)) (map f (cdr list)))))
+---
+
+--- map.hs
+map :: (a -> b) -> [a] -> [b]
+map _ [] :: []
+map f (x:xs) :: (f x) : (map f xs)
+---
+
+--- map.swift
+func map<S, T>(_ list: [S], _ f: (S) -> T) -> [T] {
+    var result: [T] = []
+    for x in list {
+        result.append(f(x))
+    }
+    return result
+}
+---
+
+### Code criticism
+
+@{map.js} could preallocate the array with the input size.
+
+@{map.swift} has the same problem, although a proper
+Swift implementation would be on both `Sequence` and `RandomAccessCollection`,
+the latter able to preallocate.
+
+The @{map.lisp} unnecessary uses linear stack space.
+A better implementation is to have an additional parameter for the accumulated
+result list, and reverse it at the end.
+I am unsure if @{map.hs} has the same problem, or the compiler has a little
+more flexibilty.
+
+## Math
+
+\begin{math}\TeX\end{math} math expressions are supported through the \begin{math}\KaTeX\end{math} [library][katex].
+
+Math can be inline such as \begin{math}x \in \{ 1, 2, 3 \} \subseteq \mathbb{Z}\end{math}.
+It can also be in `displaymath` form:
+
+\begin{displaymath}
+f(x) = \int_{-\infty}^\infty f\hat(\xi)e^{2 \pi i \xi x} \,d\xi
+\end{displaymath}
+
+Here is an `align` on it's own :
+
+\begin{align}
+   f(n x) &= f(x + \ldots + x) \\
+          &= f(x) + \ldots + f(x) \\
+          &= n f(x)
+\end{align}
+
+Here is an `equation` on its own:
+
+\begin{equation}
+   (x + y)^{n} = \sum_{k=1}^{n} {n \choose k} x^{n}y^{n -k}
+\end{equation}
+
+Here is a `split` in an `equation`:
+
+\begin{equation}
+\begin{split}  
+      a &=b+c\\
+      &=e+f
+\end{split}
+\end{equation}
+
+Here is a commutative diagram with `CD`:
+
+\begin{CD}
+   A @>a>> B \\
+   @VbVV @AAcA \\
+   C @= D
+\end{CD}
+
+[katex]: https://katex.org/

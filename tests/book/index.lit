@@ -1,0 +1,7 @@
+# Book!
+
+@toc
+
+--- cpp.sh
+g++ main.cpp -o vector-test
+---
