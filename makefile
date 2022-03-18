@@ -19,5 +19,6 @@ install:
 	mkdir -p ${PREFIX}/lib
 	./gen-script.sh ${PREFIX}
 	rsync -a --delete -r build/ "${PREFIX}/lib/srcweave/"
+	rsync -a bin/srcweave "${PREFIX}/bin/"
 	rsync -a bin/srcweave-format "${PREFIX}/bin/"
 	rsync -a bin/srcweave-format-init "${PREFIX}/bin/"
