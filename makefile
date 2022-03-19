@@ -14,7 +14,7 @@ build:
 	echo "Bundle is built"
 
 bin/srcweave:
-	./gen-script.sh ${PREFIX} > bin/srcweave
+	./gen-script.sh "${PREFIX}/lib/srcweave" > bin/srcweave
 	chmod +x bin/srcweave
 
 clean:
