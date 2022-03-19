@@ -2,22 +2,28 @@ DIR=build/local-projects/srcweave
 PREFIX=/usr/local
 BUNDLE=${PREFIX}/lib/bundle.lisp
 
-.PHONY: build clean install
+.PHONY: all clean install
+
+all: build bin/srcweave
 
 build:
 	sbcl --noinform --non-interactive --eval '(ql:bundle-systems (list "alexandria" "cl-ppcre" "unix-opts" "uiop") :to "build/")'
 	mkdir -p ${DIR}
-	cp -r bin ${DIR}/bin
 	cp *.lisp ${DIR}
 	cp *.asd ${DIR}
 	echo "Bundle is built"
 
+bin/srcweave:
+	./gen-script.sh "${PREFIX}/lib/srcweave" > bin/srcweave
+	chmod +x bin/srcweave
+
 clean:
+	rm -f bin/srcweave
 	rm -rf build
 
 install:
-	mkdir -p ${PREFIX}/lib
-	./gen-script.sh ${PREFIX}
-	rsync -a --delete -r build/ "${PREFIX}/lib/srcweave/"
-	rsync -a bin/srcweave-format "${PREFIX}/bin/"
-	rsync -a bin/srcweave-format-init "${PREFIX}/bin/"
+	rm -rf "${PREFIX}/lib/srcweave"
+	cp -r build "${PREFIX}/lib/srcweave"
+	install bin/srcweave "${PREFIX}/bin/"
+	install bin/srcweave-format "${PREFIX}/bin/"
+	install bin/srcweave-format-init "${PREFIX}/bin/"
