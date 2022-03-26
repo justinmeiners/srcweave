@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# This is also a test of file modification dates.
 
+# test: file modification dates.
+# test: trailing slash directory inputs.
 BUILD="../srcweave-test --tangle ./ --weave ./ index.lit chapter1.lit chapter2.lit"
 
 # touch source files to reset everything
