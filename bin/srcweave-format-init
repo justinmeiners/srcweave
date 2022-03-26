@@ -29,6 +29,7 @@ fi
 
 MAIN_CSS="styles/main.css"
 PRETTIFY_THEME_CSS="styles/prettify-theme.css"
+FONTS="styles/fonts"
 
 mkdir -p "$DIR"
 echo "initializing: $DIR"
@@ -39,6 +40,7 @@ then
     echo "removing old files."
     rm -rf "katex"
     rm -rf "google-code-prettify"
+    rm -rf "styles/fonts"
     rm -f "$MAIN_CSS"
     rm -f "$PRETTIFY_THEME_CSS"
 fi
@@ -67,6 +69,20 @@ else
     rm prettify.tar.bz2
 fi
 
+
+
+if [ -d "$FONTS" ]
+then
+    echo "fonts already downloaded"
+else
+    echo "Downloading fonts"
+    mkdir -p $FONTS
+    curl -L https://fonts.gstatic.com/s/firamono/v12/N0bX2SlFPv1weGeLZDtgJv7S.woff2 -o $FONTS/firamono_latin.woff2
+    curl -L https://fonts.gstatic.com/s/firamono/v12/N0bX2SlFPv1weGeLZDtgKP7SodY.woff2 -o $FONTS/firamono_latin_ext.woff2
+    curl -L https://fonts.gstatic.com/s/ubuntumono/v14/KFOjCneDtsqEr0keqCMhbCc0CsTKlA.woff2 -o $FONTS/ubuntumono_latin_ext.woff2
+    curl -L https://fonts.gstatic.com/s/ubuntumono/v14/KFOjCneDtsqEr0keqCMhbCc6CsQ.woff2 -o $FONTS/ubuntumono_latin.woff2
+fi
+
 mkdir -p styles
 
 if [ -f "$MAIN_CSS" ]
@@ -75,6 +91,43 @@ then
 else
     echo "Writing $MAIN_CSS"
     cat > "$MAIN_CSS" << EOF
+@font-face {
+  font-family: 'Fira Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/firamono_latin_ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Fira Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/firamono_latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ubuntumono_latin_ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ubuntumono_latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
 body {
     min-width: 200px;
     max-width: 850px;
@@ -136,8 +189,8 @@ a:visited {
 /* code blocks */
 
 code, .block-header {
-    font-size: 10pt;
-    font-family: Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;
+    font-size: 11pt;
+    font-family: 'Fira Mono',Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;
 }
 
 .block-header, .block-header + pre.prettyprint {
