@@ -1,4 +1,0 @@
-#!/usr/bin/env -S sbcl --script
-(load "/usr/local/lib/srcweave/bundle.lisp")
-(asdf:load-system "srcweave")
-(srcweave:toplevel)
