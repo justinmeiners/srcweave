@@ -1,1 +1,1 @@
-../srcweave-test hello.lit --force-output --tangle ./ --weave ./
+../srcweave-test hello.lit --force-output --tangle . --weave .

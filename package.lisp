@@ -15,7 +15,15 @@
 
 (defpackage :srcweave
   (:use :cl)
-  (:export :toplevel :parse-lit-files :read-lit :weave tangle *markdown-command* *format-command*))
+  (:export
+    :toplevel
+    :parse-lit-files
+    :read-lit
+    :weave
+    :tangle
+    *markdown-command*
+    *format-command*
+    "user-error"))
 
 (in-package :srcweave)
 

@@ -20,7 +20,7 @@ One way to design programs is to focus on algorithms and data structures.
 ---
 
 But of course we have all this other stuff we have to worry about that the compiler needs.
---- sample.c
+--- /sample.c
 @{includes}
 
 @{program design}
@@ -99,7 +99,7 @@ We can include blocks by name.
 Even though we have multiple includes here, it should all be one line,
 because the block contents are a single line.
 
---- multiple-include.c
+--- /whitespace/multiple-include.c
 int array[] = { @{num 1}, @{num 2} };
 ---
 
@@ -111,11 +111,10 @@ int array[] = { @{num 1}, @{num 2} };
 2
 ---
 
-
 If we include a block with multiple lines, it should include all of them.
 The included lines should be padded with the whitespace of the include statement.
 
---- multiline-include.c
+--- /whitespace/multiline-include.c
 int nums[] = {
     @{all numbers}
 };
@@ -129,28 +128,31 @@ int nums[] = {
 5
 ---
 
+Also, notice that block paths can include directory components
+and these will be created automatically.
+
 ## Block operators
 
 We can define blocks in parts by appending them together.
 For example, every C program starts with a header.
---- append.c
+--- /append.c
 #include <stdio.h>
 ---
 
 Then we have a main signature.
---- append.c += 
+--- /append.c += 
 int main(int argc, const char* argv[])
 ---
 
 Then the body:
---- append.c +=
+--- /append.c +=
 {
     printf("Hello, World!");
     return 0;
 }
 ---
 
-Which one does @{append.c} refer to?
+Which one does @{/append.c} refer to?
 
 We can also redefine blocks.
 One usage of this is to progressively refine a piece of code.
@@ -190,14 +192,12 @@ The block above should be using the final definition.
 
 ## Modifiers 
 
-Normally a block only becomes a file if it has a file extension,
-but you may still want to create files that don't have extnesions.
-For example `makefile` and other shell scripts.
-It is still advantagous to author these in your literate file.
+Notice also that it's not necessary to use a file extension, or
+for all the code in a file to be of the same type..
+For example `makefile` and other shell scripts can be 
+authored.
 
-In these cases we can use a modifier to explicilty mark them as a root block.
-
---- no-extension --- file
+--- /no-extension ---
 #!/bin/sh
 echo "Hello, World!"
 ---
@@ -205,14 +205,14 @@ echo "Hello, World!"
 Sometimes you have a block that's important for source, but too boring to include in the documentation.
 You can use the modifier `noWeave` for these.
 Here is one:
---- hidden.c --- noWeave
+--- /hidden.c --- noWeave
 int boring_function() 
 {
     return 10;
 }
 ----
 But, you will notice it does not appear in the documentation.
-References to @{hidden.c} will not have references.
+References to @{/hidden.c} will not have references.
 
 
 

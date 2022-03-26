@@ -67,7 +67,7 @@
 
 (defparameter *slug-pattern*
   (ppcre:create-scanner '(:INVERTED-CHAR-CLASS
-                          #\_ #\- #\.
+                          #\_ #\- #\. #\/
                           (:RANGE #\A #\Z)
                           (:RANGE #\a #\z)
                           (:RANGE #\0 #\9))))

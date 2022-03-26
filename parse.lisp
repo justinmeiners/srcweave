@@ -26,7 +26,6 @@
 (defun parse-modifier (x)
   (cond ((equal x "noWeave") :NO-WEAVE)
         ((equal x "hidden") :NO-WEAVE)
-        ((equal x "file") :FILE)
         (t (error 'user-error
                   :format-control "unknown modifier ~s"
                   :format-arguments x))))
@@ -244,15 +243,9 @@
     (push line math-lines)
     (go MATH)))
 
-(defparameter *filename-pattern*
-  (ppcre:create-scanner '(:SEQUENCE
-                          #\.
-                          (:GREEDY-REPETITION 1 nil :WORD-CHAR-CLASS)
-                          :END-ANCHOR)))
-
 (defun is-filename (name)
-    (not (null (ppcre:scan *filename-pattern* name))))
- 
+  (uiop:string-prefix-p "/" name)) 
+
 (defun read-lit (&optional (stream *standard-input*))
   (prog ((prose t)
          (all-defs nil)
@@ -283,6 +276,11 @@
                 (textblockdef-block def)) modify-date)) defs)
 
 (defun parse-lit-file (path)
+  (when (not (uiop:file-pathname-p path))
+    (error 'user-error
+           :format-control "lit input: ~s is not a file path"
+           :format-arguments (list path)))
+
   (set-file-attributes
     (with-open-file (*standard-input* path :direction :input)
       (read-lit))
@@ -291,5 +289,5 @@
 
 (defun parse-lit-files (paths)
   (mapcar (lambda (path)
-            (cons path (parse-lit-file path))) paths))
+            (cons path (parse-lit-file (uiop:ensure-pathname path)))) paths))
 
