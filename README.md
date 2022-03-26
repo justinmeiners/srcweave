@@ -5,7 +5,7 @@
 
 **Features:**
 
-- Use any programming language for soucre. Write prose in markdown.
+- Use any programming language for source. Write prose in markdown.
 - HTML documentation output with syntax highlighting (google-prettify) and math typesetting (KaTeX).
 - `make` friendly. Preserves file modification dates. 
 - Cross reference code across multiple files.
