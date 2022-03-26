@@ -157,7 +157,7 @@ Which one does @{/append.c} refer to?
 We can also redefine blocks.
 One usage of this is to progressively refine a piece of code.
 Let's look at a classic function
---- redefine.c
+--- /redefine.c
 #include <assert.h>
 
 @{factorial}
