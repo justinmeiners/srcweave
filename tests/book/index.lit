@@ -2,6 +2,6 @@
 
 @toc
 
---- cpp.sh
+--- /cpp.sh
 g++ main.cpp -o vector-test
 ---

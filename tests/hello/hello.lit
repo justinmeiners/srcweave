@@ -21,7 +21,7 @@ printf("Hello, World!\n");
 Blocks can then refer to one another to be included.
 For example, all C programs need a main function.
 
---- hello.c
+--- /hello.c
 @{includes}
 
 int main() {

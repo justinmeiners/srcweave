@@ -46,7 +46,7 @@ Note that chapter 1 depends on the block above.
 We also depend on chapter 1 blocks.
 Files can reference each other circularly.
 
---- main.cpp
+--- /main.cpp
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>

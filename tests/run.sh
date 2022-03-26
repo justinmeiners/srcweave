@@ -12,14 +12,16 @@ do
     sh "$(basename $TEST)";
     if [ $? -ne 0 ]
     then
-        echo "FAILED. test script error."
+        echo "*** FAILED. test script error. ***"
+        echo ""
         continue
     fi
 
-    EXPECTED_FILES="*.expected";
+    ERROR=""
+    EXPECTED_FILES="$(find . -name '*.expected')";
     for E in $EXPECTED_FILES
     do
-        S=$(basename $E ".expected")
+        S="$(dirname $E)/$(basename $E ".expected")";
 
         echo "checking: $S"
         if [ -f $E ]
@@ -27,13 +29,20 @@ do
             cmp "$S" "$E"
             if [ $? -ne 0 ]
             then
-                echo "FAILED. Didn't match expected"
+                ERROR="1"
+                echo "*** FAILED. Didn't match expected ***"
+                echo ""
                 diff -u "$E" "$S"
                 continue
             fi
         fi
     done;
-    echo "PASS"
+    if [ -z "$ERROR" ]
+    then
+        echo "PASS"
+    else
+        echo "** FAIL **"
+    fi
     echo ""
     )
 done

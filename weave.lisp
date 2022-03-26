@@ -67,7 +67,7 @@
       (gethash (textblock-slug title) (weaver-initial-def-table weaver))
     (when (not present)
       (error 'user-error
-             :format-control "attempting to include unknown block ~S"
+             :format-control "attempting to include unknown block ~s"
              :format-arguments (list title)))
 
     (let ((other (gethash initial-def-id (weaver-def-table weaver))))
@@ -304,14 +304,20 @@
                             :error-output t
                             :input (make-string-input-stream text)))) ))
 
+(defun weave-build-pathname (file-path base)
+  (uiop:merge-pathnames* 
+    (make-pathname
+      :name (pathname-name (uiop:ensure-pathname file-path :want-file t))
+      :type "html")
+    base))
+
 (defun weave (file-defs output-dir)
-  (let* ((weaver (make-weaver-default file-defs)))
+  (let* ((output-dir (uiop:ensure-directory-pathname output-dir))
+         (weaver (make-weaver-default file-defs)))
     (map nil (lambda (path-defs-pair)
                (let* ((input-path (car path-defs-pair))
                       (defs (cdr path-defs-pair))
-                      (output-path (merge-pathnames output-dir (make-pathname
-                                                           :name (pathname-name input-path)
-                                                           :type "html"))))
+                      (output-path (weave-build-pathname input-path output-dir)))
 
                  (progn
                    (format t "writing doc: ~a~%" output-path)

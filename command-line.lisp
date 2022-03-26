@@ -24,13 +24,15 @@
          :description "Generate source code files from blocks in the .lit file. Tangle is lazy and references file modification dates."
          :long "tangle"
          :short #\t
-         :arg-parser #'uiop:parse-unix-namestring)
+         :arg-parser (lambda (text)
+                       (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :weave
          :description "Generate HTML documentation files. One .html is output for each .lit input file."
          :long "weave"
          :short #\w
-         :arg-parser #'uiop:parse-unix-namestring)
+         :arg-parser (lambda (text)
+                       (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :md-compiler
          :description "Markdown command for formatting documents. Default: markdown."
@@ -68,7 +70,7 @@
 
     (when (and (not (getf options :weave))
                (not (getf options :tangle)))
-      (format *error-output* "warning no tangle or weave specified."))
+      (format *error-output* "warning: no tangle or weave specified."))
 
     (setf *markdown-command*
           (getf options :md-compiler *markdown-command*))
@@ -77,13 +79,12 @@
     (setf *trailing-newline*
           (getf options :trailing-newline *trailing-newline*))
 
-    (let ((file-defs (parse-lit-files
-                       (mapcar #'uiop:parse-unix-namestring free-args)))
+    (let ((file-defs (parse-lit-files free-args))
           (ignore-dates (if (getf options :force-output) t nil))
           (weave-path (getf options :weave))
           (tangle-path (getf options :tangle)))
 
-      (when tangle-path
+     (when tangle-path
         (format t "-- Tangle --~%")
         (tangle (alexandria-2:mappend #'cdr file-defs)
                 tangle-path

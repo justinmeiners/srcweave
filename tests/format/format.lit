@@ -80,7 +80,7 @@ seq1
 
 For testing, let's put this all in a file:
 
---- 2_33.scm
+--- /2_33.scm
 (define nil '())
 
 @{accumulate}
@@ -148,7 +148,7 @@ Feel free to customize it for your own needs.
 
 Let's try writing `map` in a few different languages:
 
---- map.js
+--- /map.js
 function map(f, array) {
     var result = [];
     for (var i = 0; i < array.length; ++i)
@@ -157,20 +157,20 @@ function map(f, array) {
 }
 ---
 
---- map.lisp
+--- /map.lisp
 (defun (map f list)
  (if (null list)
   nil
   (cons (f (car list)) (map f (cdr list)))))
 ---
 
---- map.hs
+--- /map.hs
 map :: (a -> b) -> [a] -> [b]
 map _ [] :: []
 map f (x:xs) :: (f x) : (map f xs)
 ---
 
---- map.swift
+--- /map.swift
 func map<S, T>(_ list: [S], _ f: (S) -> T) -> [T] {
     var result: [T] = []
     for x in list {
@@ -182,16 +182,16 @@ func map<S, T>(_ list: [S], _ f: (S) -> T) -> [T] {
 
 ### Code criticism
 
-@{map.js} could preallocate the array with the input size.
+@{/map.js} could preallocate the array with the input size.
 
-@{map.swift} has the same problem, although a proper
+@{/map.swift} has the same problem, although a proper
 Swift implementation would be on both `Sequence` and `RandomAccessCollection`,
 the latter able to preallocate.
 
-The @{map.lisp} unnecessary uses linear stack space.
+The @{/map.lisp} unnecessary uses linear stack space.
 A better implementation is to have an additional parameter for the accumulated
 result list, and reverse it at the end.
-I am unsure if @{map.hs} has the same problem, or the compiler has a little
+I am unsure if @{/map.hs} has the same problem, or the compiler has a little
 more flexibilty.
 
 ## Math

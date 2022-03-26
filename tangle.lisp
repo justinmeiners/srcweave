@@ -15,8 +15,14 @@
     (when (not (null (alexandria-2:last-elt (textblock-lines block))))
      (write-line "" stream))))
 
+(defun tangle-build-pathname (title base)
+  (assert (uiop:string-prefix-p "/" title))
+  (uiop:merge-pathnames* 
+    (uiop:ensure-pathname (subseq title 1)) base))
+
 (defun tangle (defs output-dir &key (ignore-dates nil)) 
-  (let* ((code-defs (remove-if-not (lambda (def) (eq (textblockdef-kind def) :CODE)) defs))
+  (let* ((output-dir (uiop:ensure-directory-pathname output-dir))
+         (code-defs (remove-if-not (lambda (def) (eq (textblockdef-kind def) :CODE)) defs))
          (root-defs (remove-if-not (lambda (def)
                                      (and (eq (textblockdef-operation def) :DEFINE)
                                           (textblockdef-is-file def))
@@ -28,7 +34,7 @@
 
     (loop for def in root-defs do
           (let* ((title (textblockdef-title def))
-                 (file-path (merge-pathnames (pathname title) output-dir))
+                 (file-path (tangle-build-pathname title output-dir))
                  (block (gethash (textblock-slug title) block-table)))
 
             (assert block)
@@ -39,11 +45,10 @@
                   (format t "writing source: ~a~%" file-path)
                   (ensure-directories-exist file-path) 
                   (with-open-file (s file-path
-                                                   :direction :output
-                                                   :if-does-not-exist :create
-                                                   :if-exists :supersede)
-
-                   (tangle-output-block block s)))
+                                     :direction :output
+                                     :if-does-not-exist :create
+                                     :if-exists :supersede)
+                    (tangle-output-block block s)))
                 (format t "up to date: ~a~%" file-path))))))
 
  
