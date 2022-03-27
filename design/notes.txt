@@ -1,0 +1,54 @@
+-[x] script to generate srcweave
+pass is worthless on testing.
+
+references link looks broken
+- [x] references are coming from prose blocks too.
+- [x] references. reverse order.
+
+chapter links are broken.
+
+- [x] tooltips on references. Include ALL the info.
+tooltips on block references.
+
+
+CODE
+
+- attribute or class? Flag.
+- error on block identifier not expected.
+
+
+MATH
+- generate my own spans. Don't use autorender.
+
+
+HELP
+
+- [x] fix wording. Do not use only
+- [x] Summary description
+
+ERRORS
+
+- [x] I'm getting a backtrace!
+
+COMMAND LINE
+
+- forward slash at the end of idr?
+
+WEAVE
+- [x] trim whitespace from beginning and end for html.
+- [x] line numbers should be 1 based
+- [x] link for hidden/noweave blocks should be removed.
+
+
+TANGLE
+
+- test: include a block with an  empty line, it will pick up the indent even if it has nothing.
+- whitespace lines should be empty.
+- [x] insert a: trailing new line at the end of tile
+- windows line endings? strip them from identifiers.
+
+STYLE
+
+- [x] anchor 
+- [x] reference ->, referenced
+
