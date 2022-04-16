@@ -236,4 +236,13 @@ Here is a commutative diagram with `CD`:
    C @= D
 \end{CD}
 
+
+### Bugs
+
+Markdown still likes to mess with spans. In particular, underscores are a problem.
+See [Inline HTML](https://manpages.debian.org/stretch/libmarkdown2-dev/markdown.7.en.html)
+Just changing it do a `<div>` doesn't work, as `divs` must be on their own line.
+Here is multiple inline math on same line: \begin{math}x_{1}\end{math}. \begin{math}a=(a_{1}, a_{2}, \ldots, a_{n})\end{math}.
+
+
 [katex]: https://katex.org/
