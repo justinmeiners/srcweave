@@ -231,17 +231,20 @@
                  (:COLORSCHEME nil)
                  (:ERROR_FORMAT nil)
                  (:MATHBLOCK
+                  ; Put <code> tags in block so it displays tex nicely without JS.
                   (setf (weaver-used-math weaver) t)
-                  (write-string "<div class=\"math-block\">")
+                  (write-string "<div class=\"math-block\"><code>")
                   (when (not (equal (second expr) "displaymath"))
                       (format t "\\begin{~a}" (second expr)))
                   (write-separated-list (third expr) #\newline *standard-output*)
                   (when (not (equal (second expr) "displaymath"))
                       (format t "\\end{~a}" (second expr)))
-                  (write-string "</div>"))
+                  (write-string "</code></div>"))
                  (:MATH
+                  ; Use backticks to prevent markdown from formatting tex,
+                  ; for example treating _ as emphasis. 
                   (setf (weaver-used-math weaver) t)
-                  (format t "<span class=\"math\">~a</span>"
+                  (format t "<span class=\"math\">`~a`</span>"
                           (second expr)))
                  (:TOC (weave-toc
                          (weaver-toc weaver)
