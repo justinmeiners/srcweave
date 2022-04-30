@@ -1,0 +1,14 @@
+# Unused block
+
+
+One block is unused:
+
+--- unused block
+Hello
+---
+
+This counts as it's own usage.
+
+--- /used block.txt
+Hello
+---

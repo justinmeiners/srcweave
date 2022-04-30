@@ -100,6 +100,7 @@
                                          :initial-value (textblock-modify-date root))
                     :lines output)))
 
+
 (defun textblock-find-title (block)
   (find-map (lambda (line)
               (find-map (lambda (expr)
@@ -108,40 +109,6 @@
                         line))
             (textblock-lines block)))
 
-(defun table-dependency-pairs (block-table)
-  "helper for tsort"
-  (let ((pairs nil))
-    (maphash (lambda (key block)
-               (dolist (name (textblock-referenced-titles block))
-                 (push (cons (textblock-slug name) key) pairs)))
-             block-table)
-    pairs))
-
-(defun textblock-include-order (block-table)
-  "Returns a list of block ids in dependency order. Uses UNIX tsort for topological order."
-  (let ((pairs (table-dependency-pairs block-table))
-        (s (make-string-output-stream)))
-
-    (loop for pair in pairs do
-          (format s "~a ~a~%" (car pair) (cdr pair)))
-    (multiple-value-bind (output error status)
-        (uiop:run-program (list "tsort")
-                          :ignore-error-status t
-                          :output :lines
-                          :error-output t
-                          :input (make-string-input-stream (get-output-stream-string s)))
-      (if (= status 0)
-          output
-          (error 'user-error :format-control "dependency resolution failed")))))
-
-(defun textblock-resolve-includes (block-table sorted-id-list)
-  "perform inclusion on all blocks in the table"
-  (dolist (id sorted-id-list)
-    (multiple-value-bind (block present)
-        (gethash id block-table)
-      (assert present)
-      (setf (gethash id block-table)
-            (textblock-include block block-table)))))
 
 (defstruct textblockdef
   "Information about where blocks are defined and config options."

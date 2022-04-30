@@ -113,8 +113,8 @@
               (opts:raw-arg condition)
               (opts:option condition)))
     (opts:missing-required-option (con)
-      (format *error-output* "~a~%" con))
+      (format *error-output* "error: ~a~%" con))
     (user-error (c)
-      (format *error-output* "~a~%" c)
+      (format *error-output* "error: ~a~%" c)
       (opts:exit 2))))
 

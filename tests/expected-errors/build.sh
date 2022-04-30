@@ -14,3 +14,5 @@ then
    exit 1
 fi
 
+echo "EXPECT warning"
+../srcweave-test --force-output --tangle ./ unused-block.lit
