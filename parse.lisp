@@ -149,7 +149,6 @@
           (modifiers (subseq suffix (+ 1 (or divider
                                              (- (length suffix) 1)
                                              )))))
-
     (values
       (nth 1 parts)
       (mapcar #'parse-block-operator operators)  
