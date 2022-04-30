@@ -58,6 +58,10 @@
   (ppcre:split '(:GREEDY-REPETITION 1 nil :WHITESPACE-CHAR-CLASS)
                string))
 
+(defun string-nullp (string)
+  (or (null string)
+      (= (length (string-trim " " string)) 0)))
+
 (defun string-is-whitespace (string)
   (ppcre:scan '(:SEQUENCE
                 :START-ANCHOR
