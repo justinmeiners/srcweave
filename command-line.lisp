@@ -85,14 +85,17 @@
           (tangle-path (getf options :tangle)))
 
      (when tangle-path
-        (format t "-- Tangle --~%")
+        (format t "TANGLE~%")
         (tangle (alexandria-2:mappend #'cdr file-defs)
                 tangle-path
-                :ignore-dates ignore-dates))
+                :ignore-dates ignore-dates)
+
+       (format t "DONE~%"))
       (when weave-path
-        (format t "-- Weave --~%")
+        (format t "WEAVE~%")
         (weave file-defs
-               weave-path)))))
+               weave-path)
+        (format t "DONE~%")))))
 
 (defun unknown-option (condition)
   (format *error-output* "warning: unknown option ~s!~%" (opts:option condition))
