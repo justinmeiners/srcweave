@@ -138,12 +138,8 @@
  
 (defun parse-block-start (line)
   (let*  ((parts 
-            (remove-if (lambda (x)
-                         (or (null x) (equal x "")))
-                       (mapcar (lambda (x)
-                                 (if (null x)
-                                     nil
-                                     (string-trim " " x)))
+            (mapcar (lambda (x) (string-trim " " x))
+                    (remove-if #'string-nullp 
                                (ppcre:split "(---)|([+]=)|(:=)" line
                                             :with-registers-p t))))
 
@@ -153,7 +149,6 @@
           (modifiers (subseq suffix (+ 1 (or divider
                                              (- (length suffix) 1)
                                              )))))
-
     (values
       (nth 1 parts)
       (mapcar #'parse-block-operator operators)  
@@ -163,6 +158,12 @@
   (prog ((def nil))
         (multiple-value-bind (title operator modifiers)
             (parse-block-start line)
+
+          (when (null title)
+            (error 'user-error
+                   :format-control "block is missing title on line: ~s"
+                   :format-arguments (list n)))
+
           (setf def (make-textblockdef :line-number n
                                        :kind :CODE
                                        :title title

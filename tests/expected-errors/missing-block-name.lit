@@ -1,0 +1,7 @@
+# Block with no name
+
+A block with no name should fail.
+
+---
+printf("Hello, World!\n");
+---
