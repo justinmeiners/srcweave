@@ -72,20 +72,18 @@
                                           (textblockdef-is-file def))
                                      ) defs-to-tangle))
          (block-table (textblockdefs-apply defs-to-tangle))
-         (dependencies (dependency-pairs-from-blocks block-table))
-         (reference-counts (dependency-count-references dependencies)))
+         (dependencies (dependency-pairs-from-blocks block-table)))
   
     (resolve-includes
       block-table
       (topological-sort-dependencies dependencies))
 
+  
     (loop for def in root-defs do
           (let* ((title (textblockdef-title def))
-                 (slug (textblock-slug title))
                  (file-path (tangle-build-pathname title output-dir))
-                 (block (gethash slug block-table)))
+                 (block (gethash (textblock-slug title) block-table)))
 
-            (incf (gethash slug reference-counts 0))
 
             (assert block)
             (if (or ignore-dates
@@ -102,14 +100,18 @@
                 (format t "up to date: ~a~%" file-path))))
 
 
-    ; Warning and errors
-
+    ; Check for warning and errors
     (when (null root-defs)
       (format *error-output* "warning: no file blocks to tangle~%"))
 
-    (maphash (lambda (k _)
-               (when (= (gethash k reference-counts 0) 0)
-                 (format *error-output* "warning: block ~s was never used.~%" k)))
-             block-table)))
+    (let ((reference-counts (dependency-count-references dependencies)))
+      (loop for def in root-defs do
+        (incf (gethash (textblock-slug (textblockdef-title def)) reference-counts 0)))
+      (maphash (lambda (k _)
+                 (when (= (gethash k reference-counts 0) 0)
+                   (format *error-output* "warning: block ~s was never used.~%" k)))
+               block-table)
+      )
+))
 
 
