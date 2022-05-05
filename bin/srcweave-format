@@ -6,6 +6,7 @@ echo '<!DOCTYPE html>'
 echo '<html lang="en">'
 echo '<head>'
 echo '<meta charset="utf-8">'
+echo '<meta name="viewport" content="width=device-width">'
 
 echo "<title>$LIT_TITLE</title>"
 
