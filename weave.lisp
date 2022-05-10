@@ -274,7 +274,7 @@
   (finish-output stream)
   ; Run markdown on the entire document so named links work.
   (let ((md (uiop:launch-program
-              (list *markdown-command*)
+              (split-whitespace *markdown-command*)
               :input :stream 
               :output stream
               :error-output *error-output*)))

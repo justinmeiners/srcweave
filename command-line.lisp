@@ -36,6 +36,7 @@
 
   (:name :md-compiler
          :description "Markdown command for formatting documents. Default: markdown."
+         :arg-parser #'identity
          :long "md-compiler")
 
   (:name :formatter
