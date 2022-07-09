@@ -117,6 +117,7 @@
   (kind :PROSE :type symbol)
   (line-number 0 :type integer)
   (file nil :type (or null string))
+  (index 0 :type integer)
   (operation :DEFINE :type symbol)
   (modifiers nil :type (or null list))
   (language "text" :type string))
@@ -131,9 +132,9 @@
   (not (find :NO-WEAVE (textblockdef-modifiers def))))
 
 (defun textblockdef-id (def)
-  (format nil "b~a:~a"
+  (format nil "~a-block-~a"
           (string-to-slug (textblockdef-title def))
-          (textblockdef-line-number def)))
+          (textblockdef-index def)))
 
 (defun textblockdef-title-slug (def)
   (textblock-slug (textblockdef-title def)))

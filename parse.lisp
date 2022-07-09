@@ -288,7 +288,19 @@
     (file-write-date path)
     (file-namestring path)))
 
+
+(defun set-def-indexes (file-def-pairs)
+  (let ((counter 0))
+    (loop for pair in file-def-pairs do
+          (loop for def in (cdr pair) do
+                (setf (textblockdef-index def) counter)
+                (incf counter))))
+  file-def-pairs)
+
+
 (defun parse-lit-files (paths)
-  (mapcar (lambda (path)
-            (cons path (parse-lit-file (uiop:ensure-pathname path)))) paths))
+  "returns a list of pairs (path . list-of-block-defs)"
+    (set-def-indexes
+     (mapcar (lambda (path)
+              (cons path (parse-lit-file (uiop:ensure-pathname path)))) paths)))
 

@@ -112,6 +112,7 @@
               (t (error "unknown structure ~S" expr)))))
 
 (defun usage-tooltip (def other)
+  "generate title attribute contents"
   (if (equal (textblockdef-file def)
              (textblockdef-file other))
       (textblockdef-title other)

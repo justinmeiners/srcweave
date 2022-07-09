@@ -71,13 +71,14 @@
 
 (defparameter *slug-pattern*
   (ppcre:create-scanner '(:INVERTED-CHAR-CLASS
-                          #\_ #\- #\. #\/
+                          #\_ #\- #\.
                           (:RANGE #\A #\Z)
                           (:RANGE #\a #\z)
                           (:RANGE #\0 #\9))))
 
 (defun string-to-slug (string)
-  (ppcre:regex-replace-all *slug-pattern* string "_"))
+  (ppcre:regex-replace-all *slug-pattern* string "-"))
+
 
 (define-condition user-error (simple-error) ())
 
