@@ -185,12 +185,13 @@
     (format t "<pre class=\"prettyprint\"><code class=\"~a\">"
             (language-to-class (textblockdef-language def)))
 
-    ; trim blank lines from start and end
-    (loop for i 
-          from (position-if-not #'null lines)
-          to (position-if-not #'null lines :from-end t) do
-          (weave-code-line weaver (aref lines i) def)
-          (write-line ""))
+    (alexandria-2:if-let ((left (position-if-not #'null lines))
+                         (right (position-if-not #'null lines :from-end t)))
+                        ; trim blank lines from start and end
+                        (loop for i from left to right do
+                              (weave-code-line weaver (aref lines i) def)
+                              (write-line ""))
+                        (format *error-output* "warning: empty block ~s~%" (textblockdef-title def)))
 
     (write-line "</code></pre>"))
     (when (eq :DEFINE (textblockdef-operation def))

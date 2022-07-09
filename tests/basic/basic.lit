@@ -131,6 +131,12 @@ int nums[] = {
 Also, notice that block paths can include directory components
 and these will be created automatically.
 
+
+Blocks can be empty:
+
+--- empty block
+---
+
 ## Block operators
 
 We can define blocks in parts by appending them together.
