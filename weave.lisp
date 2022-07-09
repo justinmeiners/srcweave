@@ -114,10 +114,10 @@
 (defun usage-tooltip (def other)
   (if (equal (textblockdef-file def)
              (textblockdef-file other))
+      (textblockdef-title other)
       (format nil "~a. ~a"
               (textblockdef-title other)
-              (textblockdef-file other))
-      (textblockdef-title other)))
+              (textblockdef-file other))))
 
 (defun weave-uses (weaver def)
   (let ((uses 
