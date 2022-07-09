@@ -135,7 +135,6 @@
                                     (usage-tooltip def other)
                                     (+ i 1))
                             (format t "<span title=\"~a\">~a</span> "
-                                    (textblockdef-title other)
                                     (usage-tooltip def other)
                                     (+ i 1)))) uses)
       (write-string "</small></p>"))))
