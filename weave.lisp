@@ -14,12 +14,13 @@
 
 (in-package :srcweave)
 
-; Weave: Make  document from lit file.
+; Weave: Make readable documentation from .lit file.
+; We have chosen HTML for it's support for many media types and readability
+; on many devices.
 
 ; DESIGN
 ; One-to-one correspondence between .lit and .html files.
-; The body of an .html file should look the same regardless of whether the .lit
-; is in another context (like a book).
+; The body of an .html file should look the same regardless of whether the .lit is in another context (like a book).
 
 (defstruct weaver 
   (def-table (make-hash-table :test #'equal) :type hash-table)
@@ -54,12 +55,12 @@
 (defun chapter-id (index) (format nil "c~a" index))
 (defun section-id (section-index chapter-index) (format nil "s~a:~a" chapter-index section-index))
 
-(defun block-anchor (block-id &optional file)  (format nil "~a#~a"  (or file "") block-id))
+(defun block-anchor (block-id &optional file) (format nil "~a#~a"  file block-id))
 
 (defun block-anchor2 (def current-file)
   (block-anchor (textblockdef-id def)
                 (if (equal current-file (textblockdef-file def))
-                    nil
+                    ""
                     (lit-page-filename (textblockdef-file def)))))
 
 (defun weave-include (title current-file weaver code-style)
@@ -71,9 +72,10 @@
              :format-arguments (list title)))
 
     (let ((other (gethash initial-def-id (weaver-def-table weaver))))
-      (format t "<em class=\"block-link nocode\" title=\"~a:~a\">"
-              (textblockdef-file other)
-              (+ (textblockdef-line-number other) 1))
+      (format t "<em class=\"block-link nocode\" title=\"~a\">"
+              (if (equal current-file (textblockdef-file other))
+                         ""
+                         (textblockdef-file other)))
       (when (textblockdef-weavable other)
         (format t "<a href=\"~a\">" (block-anchor2 other current-file)))
       (format t
@@ -84,6 +86,7 @@
       (when (textblockdef-weavable other)
         (write-string "</a>"))
       (write-string "</em>"))))
+
 
 (defparameter *html-replace-list*
   '((#\& . "&amp;") (#\< . "&lt;") (#\> . "&gt;")))
@@ -108,6 +111,14 @@
                    (format *error-output* "warning: unknown code command ~S~%" (first expr)))))
               (t (error "unknown structure ~S" expr)))))
 
+(defun usage-tooltip (def other)
+  (if (equal (textblockdef-file def)
+             (textblockdef-file other))
+      (format nil "~a. ~a"
+              (textblockdef-title other)
+              (textblockdef-file other))
+      (textblockdef-title other)))
+
 (defun weave-uses (weaver def)
   (let ((uses 
           (mapcar (lambda (slug)
@@ -118,16 +129,13 @@
       (write-string "<p class=\"block-usages\"><small>Used by ")
       (mapnil-indexed (lambda (other i)
                         (if (textblockdef-weavable other)
-                            (format t "<a href=\"~a\" title=\"~a:~a ~a\">~a</a> "
+                            (format t "<a href=\"~a\" title=\"~a\">~a</a> "
                                     (block-anchor2 other (textblockdef-file def))
-                                    (textblockdef-file other)
-                                    (+ 1 (textblockdef-line-number other))
-                                    (textblockdef-title other)
+                                    (usage-tooltip def other)
                                     (+ i 1))
-                            (format t "<span title=\"~a:~a ~a\">~a</span> "
-                                    (textblockdef-file other)
-                                    (+ 1 (textblockdef-line-number other))
+                            (format t "<span title=\"~a\">~a</span> "
                                     (textblockdef-title other)
+                                    (usage-tooltip def other)
                                     (+ i 1)))) uses)
       (write-string "</small></p>"))))
 
