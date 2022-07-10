@@ -77,7 +77,7 @@
                           (:RANGE #\0 #\9))))
 
 (defun string-to-slug (string)
-  (ppcre:regex-replace-all *slug-pattern* string "-"))
+  (string-downcase (ppcre:regex-replace-all *slug-pattern* string "-")))
 
 
 (define-condition user-error (simple-error) ())
