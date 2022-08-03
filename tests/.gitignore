@@ -8,3 +8,4 @@ google-code-prettify
 katex
 styles
 *.timestamp
+*.lisp

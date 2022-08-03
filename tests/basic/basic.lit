@@ -220,5 +220,14 @@ int boring_function()
 But, you will notice it does not appear in the documentation.
 References to @{/hidden.c} will not have references.
 
+## Escaping the include syntax "@{...}"
 
+In code blocks and prose, the @ sign followed by an open and close brace is typically parsed as a code block reference. You can use a double @ sign to escape from that functionality. When weaving/tangling, the double "@@@" gets replaced by a single "@".
 
+--- Escape-includes
+(defvar includes-regex "@@{\\(\w+\\)}")
+---
+
+--- /escaped.lisp
+@{Escape-includes}
+---

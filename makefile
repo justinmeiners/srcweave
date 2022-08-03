@@ -1,5 +1,5 @@
 DIR=build/local-projects/srcweave
-PREFIX=/usr/local
+PREFIX?=/usr/local
 BUNDLE=${PREFIX}/lib/bundle.lisp
 
 SRC_LISP=$(wildcard *.lisp)

@@ -32,16 +32,16 @@
 
 (defparameter *ref-pattern*
   (ppcre:create-scanner '(:SEQUENCE
-                          #\@ #\{
-                          (:REGISTER (:GREEDY-REPETITION 1 nil
-                                      (:INVERTED-CHAR-CLASS #\})))
+                          (:NEGATIVE-LOOKBEHIND #\@)
+                          "@{"
+                          (:REGISTER (:GREEDY-REPETITION 1 NIL (:INVERTED-CHAR-CLASS #\})))
                           #\})))
 
 (defun parse-refs (line)
   (let ((parts (ppcre:split *ref-pattern* line :with-registers-p t)))
     (mapcar-indexed (lambda (string i)
                       (if (evenp i)
-                          string
+                          (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1")
                           (list :INCLUDE string)))
                     parts)))
 
