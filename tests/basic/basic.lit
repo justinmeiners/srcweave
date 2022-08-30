@@ -137,6 +137,10 @@ Blocks can be empty:
 --- empty block
 ---
 
+Files can be empty:
+--- /touchfile
+---
+
 ## Block operators
 
 We can define blocks in parts by appending them together.
