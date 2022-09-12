@@ -39,7 +39,10 @@
   (dolist (id sorted-id-list)
     (multiple-value-bind (block present)
         (gethash id block-table)
-      (assert present)
+      (when (not present)
+        (error 'user-error
+         :format-control "attempting to include unknown block ~s"
+         :format-arguments (list id)))
       (setf (gethash id block-table)
             (textblock-include block block-table)))))
  
