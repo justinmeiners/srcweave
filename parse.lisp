@@ -37,6 +37,9 @@
                           (:REGISTER (:GREEDY-REPETITION 1 NIL (:INVERTED-CHAR-CLASS #\})))
                           #\})))
 
+;; To link to an section or chapter
+(defparameter *anchor-pattern* "\\[.*?\\]\\(@(.*?)\\)")
+
 (defun parse-refs (line)
   (let ((parts (ppcre:split *ref-pattern* line :with-registers-p t)))
     (mapcar-indexed (lambda (string i)
