@@ -1,5 +1,10 @@
 # Circular dependencies
 
+A circular dependency between blocks should be an error
+as there is no well defined way to handle this situation.
+
+Here is an example where `a -> b -> c -> a`.
+
 --- a
 Duck
 @{b}
