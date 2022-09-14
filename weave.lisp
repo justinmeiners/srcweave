@@ -92,6 +92,7 @@
   '((#\& . "&amp;") (#\< . "&lt;") (#\> . "&gt;")))
 
 (defun escape-html (string)
+  "replace invalid HTML characters with their escaped versions."
   (reduce (lambda (string replace-pair)
             (ppcre:regex-replace-all (car replace-pair) string (cdr replace-pair)))
           *html-replace-list*
@@ -108,8 +109,10 @@
                              weaver
                              t))
                  (otherwise
-                   (format *error-output* "warning: unknown code command ~S~%" (first expr)))))
-              (t (error "unknown structure ~S" expr)))))
+                   ; this shouldn't happen.
+                   ; This relates to "block has not been fully resolved" in the tangle.
+                   (error "unknown code command ~S" expr))))
+              (t (error "internal error. unknown structure ~S" expr)))))
 
 (defun usage-tooltip (def other)
   "generate title attribute contents"
@@ -190,7 +193,7 @@
                         (loop for i from left to right do
                               (weave-code-line weaver (aref lines i) def)
                               (write-line ""))
-                        (format *error-output* "warning: empty block ~s~%" (textblockdef-title def)))
+                        (format *error-output* "warning: weaving empty block ~s~%" (textblockdef-title def)))
 
     (write-line "</code></pre>"))
     (when (eq :DEFINE (textblockdef-operation def))
@@ -233,12 +236,7 @@
                          (language (first args))
                          (extension (subseq (second args) 1)))
                     (setf (gethash extension (weaver-code-type-table weaver)) language)
-                    (push extension (weaver-used-extensions weaver))))
-                 (:COMMENT_TYPE nil)
-                 (:ADD_CSS nil)
-                 (:OVERWRITE_CSS nil)
-                 (:COLORSCHEME nil)
-                 (:ERROR_FORMAT nil)
+                    (push extension (weaver-used-extensions weaver)))) 
                  (:MATHBLOCK
                   ; Put <code> tags in block so it displays tex nicely without JS.
                   (setf (weaver-used-math weaver) t)
@@ -258,6 +256,8 @@
                  (:TOC (weave-toc
                          (weaver-toc weaver)
                          (textblockdef-file def)))
+                 ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
+                  (format *error-output* "warning: deprecated Literate prose command ~s. ignored.~%" (first expr)))
                  (otherwise (error 'user-error
                                    :format-control "unknown prose command ~S"
                                    :format-arguments (first expr)))))

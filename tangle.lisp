@@ -81,13 +81,11 @@
     (resolve-includes
       block-table
       (topological-sort-dependencies dependencies))
-
   
     (loop for def in root-defs do
           (let* ((title (textblockdef-title def))
                  (file-path (tangle-build-pathname title output-dir))
                  (block (gethash (textblock-slug title) block-table)))
-
 
             (assert block)
             (if (or ignore-dates
