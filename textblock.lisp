@@ -16,7 +16,6 @@
 
 ; Design: DSL for manpulating textblocks.
 ; This means well defined operations that are ideally closed.
-
 ; For example:
 ; - append two blocks and get a block
 ; - include references in a block to get a new block
@@ -36,22 +35,23 @@
     list))
 
 (defun textblock-slug (title) (string-to-slug title))
- 
-(defun leading-whitespace (code-line)
-  (if (stringp (car code-line))
-      (multiple-value-bind (match groups)
-          (ppcre:scan-to-strings "(\\s*)" (car code-line))
-        (assert match)
-        (aref groups 0)) ""))
 
 (defun textblock-concat (a b)
-  "concatenate the text of two blocks"
+  "concatenate the text of two blocks. The modification date is the most recent of the two dates."
   (make-textblock
     :modify-date (max (textblock-modify-date a)
                       (textblock-modify-date b))
     :lines (concatenate 'vector
                         (textblock-lines a)
                         (textblock-lines b))))
+
+
+(defun leading-whitespace (code-line)
+  (if (stringp (car code-line))
+      (multiple-value-bind (match groups)
+          (ppcre:scan-to-strings "(\\s*)" (car code-line))
+        (assert match)
+        (aref groups 0)) ""))
  
 (defun include-lines (block prefix whitespace output)
   (let* ((src (textblock-lines block))
@@ -65,17 +65,29 @@
            (cons whitespace (aref src (- n 1)))))))
 
 (defun include-helper (line output block-table)
+  ; Handling white space properly in block inclusion is tricky.
+  ; Suppose you have something like this:
+  ; int main() {
+  ;     @{body}
+  ; }
+  ; We want all the lines from body to be indented at same level.
+  ; So we need to record the whitespace prefix and prepend that to each line.
+  ; See the tests for additional examples. 
+
+  ; What should the following do if body has multiple lines?
+  ; int main() { @{body} }
+
   (let ((prefix '()))
     (loop for expr in line do
           (cond ((stringp expr) (setf prefix (append prefix (list expr))))
                 ((commandp expr) 
                  (case (first expr)
                    (:INCLUDE
-                     (multiple-value-bind (other present)
+                     (multiple-value-bind (other-block present)
                          (gethash (textblock-slug (second expr)) block-table)
                        (if present
                            (setf prefix (include-lines
-                                          other
+                                          other-block
                                           prefix
                                           (leading-whitespace line) output))
                            (error 'user-error
@@ -102,9 +114,11 @@
 
 
 (defun textblock-find-title (block)
+  "Find the first title command in the block."
   (find-map (lambda (line)
               (find-map (lambda (expr)
-                         (when (and (commandp expr) (eq (first expr) :TITLE))
+                         (when (and (commandp expr)
+                                    (eq (first expr) :TITLE))
                            (second expr)))
                         line))
             (textblock-lines block)))
@@ -168,7 +182,7 @@
     table))
 
 (defun textblockdefs-apply (defs)
-  "construct a table of blocks by evaluating combination operations"
+  "construct a table of blocks by evaluating the block  operations (include, concat, etc)."
   (let ((block-table (make-hash-table :test #'equal)))
     (loop for def in defs do
           (let ((block (textblockdef-block def))
