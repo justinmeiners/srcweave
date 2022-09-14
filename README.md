@@ -83,29 +83,35 @@ For more in-depth examples, see my article:
 ## Comparison with Literate
 
 srcweave is inspired by Zach Yedidia's [Literate](https://zyedidia.github.io/literate/).
-I like his system and have used it for several years, but I have developed my own preferences.
+I like his program, have used it for several years, and am grateful for his contribution.
+However, I have since developed my own preferences and ideas for improvement:
 
 - Written in Common Lisp instead of D.
-  This makes it more stable and portable (BSD, etc).
-- More modular UNIX design. srcweave completely delegates HTML formatting and libraries
-  to a shell script. It provides the same features by default, but is much easier to customize.
-- Simpler handling of multifile systems. The "books" feature is a little cumbersome.
-- GPL license instead of MIT. It's intended to be used as a program, so
-  this should not restrict commercial use while maximizing user freedom (contact me if you have an issue).
+  This makes it more stable and portable (works on BSD, etc).
+- More modular UNIX design.
+  srcweave completely delegates HTML formatting and libraries to a shell script.
+  It provides high quality document output right out of the box, but is much easier to customize.
+- Simpler handling of multiple files.
+  The "books" feature in Literate is a little cumbersome.
+  In srcweave you can have multiple chapters in a single file,
+  or divide them each into their own file. There is no distinction.
+- GPL license instead of MIT.
+  srcweave is a program for end users.
+  GPL should not restrict commercial use of the program while maximizing user freedom (contact me if you have an issue).
 
 The [vim plugin](https://github.com/zyedidia/literate.vim) should be compatible.
 
 **Known incompatibilities:**
 
-You can move files from Literate with only minor changes.
-Here are the major differences:
+You can convert files from Literate with only minor changes.
+Here are the important differences:
 
 - formatting commands like `@add_css`, `@colorscheme` are ignored.
   Use the shared `.css` or a custom format script.
 - no support for books `@book`. Just pass multiple `.lit` files to the tool in the order you want.
-- no support for `@change` commands. Use shell scripts in your build process.
-- `@title` only sets the page title.
-- Prefer markdown `# heading 1`  and `## heading 2` instead of `@s`, etc.
+- no support for `@change` commands. Use shell scripts in your build process, instead.
+- `@title` only sets the page title, it does not create a heading.
+- Prefer markdown headings `# heading 1`  and `## heading 2` instead of `@s`, etc.
 
 ## Acknowledgments
 
