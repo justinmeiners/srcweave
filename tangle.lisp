@@ -32,7 +32,8 @@
                           :input (make-string-input-stream (get-output-stream-string s)))
       (if (= status 0)
           output
-          (error 'user-error :format-control "dependency resolution failed")))))
+          (error 'user-error
+                 :format-control "dependency resolution failed")))))
 
 (defun resolve-includes (block-table sorted-id-list)
   "perform inclusion on all blocks in the table"
