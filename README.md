@@ -103,7 +103,7 @@ The [vim plugin](https://github.com/zyedidia/literate.vim) should be compatible.
 
 **Known incompatibilities:**
 
-You can convert files from Literate with only minor changes.
+You can migrate files from Literate with only minor changes.
 Here are the important differences:
 
 - In literate, any block named with a file extension becomes a file.

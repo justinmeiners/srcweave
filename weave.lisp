@@ -256,6 +256,10 @@
                  (:TOC (weave-toc
                          (weaver-toc weaver)
                          (textblockdef-file def)))
+
+                 ; These commands are from Zach's Literate.
+                 ; We treat them as warnings instead of errors to make migration easier.
+                 ; It's possible they may be useful for us in the future.
                  ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
                   (format *error-output* "warning: deprecated Literate prose command ~s. ignored.~%" (first expr)))
                  (otherwise (error 'user-error
