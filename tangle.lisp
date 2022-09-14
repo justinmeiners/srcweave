@@ -59,9 +59,9 @@
                     (error "block has not been fully resolved ~s" expr)))))
 
   (when (and *trailing-newline*
-             (not (alexandria-2:emptyp (textblock-lines block))))
-    (when (not (null (alexandria-2:last-elt (textblock-lines block))))
-     (write-line "" stream))))
+             (not (alexandria-2:emptyp (textblock-lines block)))
+             (not (null (alexandria-2:last-elt (textblock-lines block)))))
+     (write-line "" stream)))
 
 (defun tangle-build-pathname (title base)
   (assert (uiop:string-prefix-p "/" title))
