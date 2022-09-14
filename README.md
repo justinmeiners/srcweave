@@ -106,10 +106,10 @@ The [vim plugin](https://github.com/zyedidia/literate.vim) should be compatible.
 You can convert files from Literate with only minor changes.
 Here are the important differences:
 
-- In srcweave, all file blocks must be prefixed with a path. For example `/out.txt` instead of `out.txt`.
-  In literate, any block named with a file extension becomes a file.
+- In literate, any block named with a file extension becomes a file.
+  In srcweave, all file blocks must be prefixed with a path. For example `/out.txt` instead of `out.txt`.
 - formatting commands like `@add_css`, `@colorscheme` are ignored.
-  Use the shared `.css` or a custom format script.
+  Use the shared `.css` created by `srcweave-format-init` or a custom format script.
 - no support for books `@book`. Just pass multiple `.lit` files to the tool in the order you want.
 - no support for `@change` commands. Use shell scripts in your build process, instead.
 - `@title` only sets the page title, it does not create a heading.
