@@ -305,12 +305,15 @@
         ; we first write to data in RAM to get formatting info for environment variables.
         (let ((text (with-output-to-string (s)
                       (weave-html weaver s source-defs))))
+
+          ; set environmental variables based on weave results.
           (setf (uiop:getenv "LIT_TYPES")
                 (extensions-to-type-string (weaver-code-type-table weaver)
                                            (weaver-used-extensions weaver)))
           (setf (uiop:getenv "LIT_TITLE") (or (weaver-title weaver) ""))
           (setf (uiop:getenv "LIT_MATH") (if (weaver-used-math weaver) "1" ""))
 
+          ; run format on weave results.
           (uiop:run-program (split-whitespace *format-command*)
                             :output output-stream
                             :error-output t
