@@ -112,9 +112,10 @@
     (let ((reference-counts (dependency-count-references dependencies)))
       (loop for def in root-defs do
         (incf (gethash (textblock-slug (textblockdef-title def)) reference-counts 0)))
+
       (maphash (lambda (k _)
                  (when (= (gethash k reference-counts 0) 0)
-                   (warn "block ~a was never used." k)))
+                   (warn "block ~s was never used." k)))
                block-table)
       )
 ))

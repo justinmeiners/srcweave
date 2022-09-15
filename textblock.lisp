@@ -90,7 +90,7 @@
                                           other-block
                                           prefix
                                           (leading-whitespace line) output))
-                           (warn "attempting to include unknown block: ~a" (second expr)))))
+                           (warn "attempting to include unknown block: ~s" (second expr)))))
                    (otherwise (error "unknown code command ~S" (first expr)))))
                 (t (error "unknown structure"))))
     (vector-push-extend prefix output)))

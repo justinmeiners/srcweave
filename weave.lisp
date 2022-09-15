@@ -198,7 +198,7 @@
                         (loop for i from left to right do
                               (weave-code-line weaver (aref lines i) def)
                               (write-line ""))
-                        (warn "weaving empty block ~a" (textblockdef-title def)))
+                        (warn "weaving empty block ~s" (textblockdef-title def)))
 
     (write-line "</code></pre>"))
     (when (eq :DEFINE (textblockdef-operation def))
