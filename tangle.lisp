@@ -36,17 +36,19 @@
                  :format-control "dependency resolution failed")))))
 
 (defun resolve-includes (block-table sorted-id-list)
-  "perform inclusion on all blocks in the table"
+  "perform inclusion on all blocks in the table.
+  sorted-id-list should be topolgically sorted"
+
   (dolist (id sorted-id-list)
     (multiple-value-bind (block present)
         (gethash id block-table)
-      (when (not present)
-        (error 'user-error
-         :format-control "attempting to include unknown block ~s"
-         :format-arguments (list id)))
-      (setf (gethash id block-table)
-            (textblock-include block block-table)))))
- 
+
+      ; If a referenced block id doesn't exist in the table.
+      ; just ignore it for now. The inclusion code will warn
+      ; if it's a problem.
+      (when present
+        (setf (gethash id block-table)
+              (textblock-include block block-table))))))
 
 (defun tangle-output-block (block &optional (stream t))
   (let ((first t))
@@ -105,14 +107,14 @@
 
     ; Check for warning and errors
     (when (null root-defs)
-      (format *error-output* "warning: no file blocks to tangle~%"))
+      (warn "no file blocks to tangle"))
 
     (let ((reference-counts (dependency-count-references dependencies)))
       (loop for def in root-defs do
         (incf (gethash (textblock-slug (textblockdef-title def)) reference-counts 0)))
       (maphash (lambda (k _)
                  (when (= (gethash k reference-counts 0) 0)
-                   (format *error-output* "warning: block ~s was never used.~%" k)))
+                   (warn "block ~a was never used." k)))
                block-table)
       )
 ))

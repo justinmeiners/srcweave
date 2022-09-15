@@ -66,24 +66,29 @@
 (defun weave-include (title current-file weaver code-style)
   (multiple-value-bind (initial-def-id present)
       (gethash (textblock-slug title) (weaver-initial-def-table weaver))
-    (when (not present)
-      (error 'user-error
-             :format-control "attempting to include unknown block ~s"
-             :format-arguments (list title)))
 
-    (let ((other (gethash initial-def-id (weaver-def-table weaver))))
-      (format t "<em class=\"block-link nocode\" title=\"~a\">"
-              (if (equal current-file (textblockdef-file other))
-                         ""
-                         (textblockdef-file other)))
-      (when (textblockdef-weavable other)
+    ; find the first block that uses that identifier
+    (let* ((other (if present
+                      (gethash initial-def-id (weaver-def-table weaver))
+                      '()))
+           (hover-title-element
+             ; create hover text which tells the user which file the block is in.
+             (cond ((not other) " title=\"undefined block\"")
+                   ((equal current-file (textblockdef-file other)) "")
+                   (t
+                    (format nil " title=\"~a\""
+                            (textblockdef-file other))
+                    ))))
+      (format t "<em class=\"block-link nocode\"~a>" hover-title-element)
+
+      (when (and other (textblockdef-weavable other))
         (format t "<a href=\"~a\">" (block-anchor2 other current-file)))
       (format t
               (if code-style
                   "@{~a}"
                   "~a")
               title)
-      (when (textblockdef-weavable other)
+      (when (and other (textblockdef-weavable other))
         (write-string "</a>"))
       (write-string "</em>"))))
 
@@ -193,7 +198,7 @@
                         (loop for i from left to right do
                               (weave-code-line weaver (aref lines i) def)
                               (write-line ""))
-                        (format *error-output* "warning: weaving empty block ~s~%" (textblockdef-title def)))
+                        (warn "weaving empty block ~a" (textblockdef-title def)))
 
     (write-line "</code></pre>"))
     (when (eq :DEFINE (textblockdef-operation def))
@@ -261,7 +266,7 @@
                  ; We treat them as warnings instead of errors to make migration easier.
                  ; It's possible they may be useful for us in the future.
                  ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
-                  (format *error-output* "warning: deprecated Literate prose command ~s. ignored.~%" (first expr)))
+                  (warn "deprecated Literate prose command ~s. ignored." (first expr)))
                  (otherwise (error 'user-error
                                    :format-control "unknown prose command ~S"
                                    :format-arguments (first expr)))))
