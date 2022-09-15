@@ -90,27 +90,25 @@
                                           other-block
                                           prefix
                                           (leading-whitespace line) output))
-                           (error 'user-error
-                                  :format-control "cannot find block to include: ~s"
-                                  :format-arguments (list (second expr))))))
+                           (warn "attempting to include unknown block: ~s" (second expr)))))
                    (otherwise (error "unknown code command ~S" (first expr)))))
                 (t (error "unknown structure"))))
     (vector-push-extend prefix output)))
 
 (defun textblock-include (root block-table)
   "form a new block by including the contents of all immediate dependencies (nonrecursive)."
-  (let* ((titles (textblock-referenced-titles root))
-         (dependencies (mapcar (lambda (title)
-                                 (gethash (textblock-slug title) block-table)) titles))
-         (output (make-array 16 :fill-pointer 0 :adjustable t)))
-
+  (let ((output (make-array 16 :fill-pointer 0 :adjustable t)))
     (loop for line across (textblock-lines root) do
           (include-helper line output block-table))
 
-    (make-textblock :modify-date (reduce #'max
-                                         (mapcar #'textblock-modify-date dependencies)
-                                         :initial-value (textblock-modify-date root))
-                    :lines output)))
+    (let* ((titles (textblock-referenced-titles root))
+           (dependencies (remove-if #'null (mapcar (lambda (title)
+                                                     (gethash (textblock-slug title) block-table))
+                                                   titles))))
+      (make-textblock :modify-date (reduce #'max
+                                           (mapcar #'textblock-modify-date dependencies)
+                                           :initial-value (textblock-modify-date root))
+                      :lines output))))
 
 
 (defun textblock-find-title (block)

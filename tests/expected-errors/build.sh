@@ -15,4 +15,4 @@ then
 fi
 
 echo "EXPECT warning"
-../srcweave-test --force-output --tangle ./ unused-block.lit
+../srcweave-test --force-output --weave ./ --tangle ./ unused-block.lit
