@@ -87,11 +87,8 @@ Lastly, there are some boring headers to include.
 #include <stdlib.h>
 ---
 
-We can reference blocks in prose.
-Note that @{algorithms} is `O(n)`.
-
-We can also link to chapters and sections.
-This link leads back up to [the Including blocks](@Including blocks) section.
+We can also reference blocks in prose.
+Note that @{algorithms} is `O(n)`. 
 
 ## Formatting and whitespace
 

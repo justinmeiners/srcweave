@@ -22,39 +22,9 @@
 ; One-to-one correspondence between .lit and .html files.
 ; The body of an .html file should look the same regardless of whether the .lit is in another context (like a book).
 
-(defun get-section (weaver section)
-  (trie-get (weaver-section-map weaver) section))
-
-(defun add-section (weaver section anchor)
-  (setf (weaver-section-map weaver)
-        (trie-put (weaver-section-map weaver) section anchor)))
-
-(comment
- (let* ((file-defs (parse-lit-files '("dev.lit")))
-        (weaver (make-weaver-default file-defs)))
-   (add-section weaver '("Some Chapter") "c2")
-   (add-section weaver '("Some Chapter" "some-section") "s2:1")
-   (trie-get (weaver-section-map weaver) '("some-chapter"))
-   (weaver-section-map weaver))
-   ; => (("Some Chapter"
-   ;      ("some-section" (:TERMINAL . "s2:1"))
-   ;      (:TERMINAL . "c2")))
- )
-
-(defstruct weaver
+(defstruct weaver 
   (def-table (make-hash-table :test #'equal) :type hash-table)
   (use-table (make-hash-table :test #'equal) :type hash-table)
-  ;; section-map is used to map chapter/section text to their respective
-  ;; anchor ids, like #s2:4
-  ;;
-  ;; This lets you create markdown links like this:
-  ;; [some section or chapter](@some section or chapter)
-  ;; Which will be woven to (for example):
-  ;; [some section or chapter](#s2:4)
-  ;;
-  ;; Right now, it doesn't work across files in a book.
-  ;; Heck... it barely works at all.
-  (section-map '() :type list)
   (initial-def-table (make-hash-table :test #'equal) :type hash-table)
 
   (toc nil :type list)
@@ -227,110 +197,71 @@
       (weave-uses weaver def))
   (write-line "</div>"))
 
-;; This is not elegant.
-(defun replace-sections-with-id-anchors (trie line)
-  (let ((r "")
-        (s 0)
-        (e 0))
-    (ppcre:do-scans (start end reg-starts reg-ends *anchor-pattern* line)
-      (let ((title (subseq line (aref reg-starts 0) (aref reg-ends 0))))
-        (setf
-         r
-         (format
-          nil
-          "~a~a"
-          r
-          (concatenate
-           'string
-           (subseq line s (- (aref reg-starts 0) 1))
-           (format nil "#~a" (cdr (assoc :terminal (cdr (trie-get trie (list title)))))))))
-        (setf s (aref reg-ends 0))
-        (setf e (aref reg-ends 0))))
-    (setf r (format nil "~a~a" r (subseq line e)))
-    r))
-
-(comment
- (let ((trie (trie-put '() '("some-chapter") "c1")))
-   (replace-sections-with-id-anchors
-    trie
-    "foo [some chapter](@some-chapter) bar [other](@some-chapter) buz"))
- ; => "foo [some chapter](#c1) bar [other](#c1) buz"
- )
-
 (defun weave-prose-line (weaver line def)
   (loop for expr in line do
-    (cond ((stringp expr)
-           (if (ppcre:scan *anchor-pattern* expr)
-               (write-string
-                (replace-sections-with-id-anchors
-                 (weaver-section-map weaver)
-                 expr))
-               (write-string expr)))
-          ((commandp expr)
-           (case (first expr)
-             (:INCLUDE (weave-include
-                        (second expr)   ; title of block
-                        (textblockdef-file def)
-                        weaver
-                        nil))
-             (:TITLE
-              (setf (weaver-title weaver)
-                    (second expr)))
-             (:C
-                                        ; Also can act as a title
-              (when (null (weaver-title weaver))
-                (setf (weaver-title weaver)
-                      (second expr)))
-              (incf (weaver-chapter-counter weaver))
-              (setf (weaver-section-counter weaver) -1)
-              (format t "<h1>~a<a id=\"~a\"></a></h1>~%"
-                      (second expr)
-                      (chapter-id (weaver-chapter-counter weaver)))
-              (add-section weaver (list (second expr)) (chapter-id (weaver-chapter-counter weaver))))
-             (:S
-              (incf (weaver-section-counter weaver))
-              (format t "<h2>~a. ~a<a id=\"~a\"></a></h2>~%"
-                      (+ (weaver-section-counter weaver) 1)
-                      (second expr)
-                      (section-id
-                       (weaver-section-counter weaver)
-                       (weaver-chapter-counter weaver)))
-              (add-section weaver (list (second expr)) (section-id (weaver-section-counter weaver)
-                                                                   (weaver-chapter-counter weaver))))
-             (:CODE_TYPE
-              (let* ((args (split-whitespace (second expr)))
-                     (language (first args))
-                     (extension (subseq (second args) 1)))
-                (setf (gethash extension (weaver-code-type-table weaver)) language)
-                (push extension (weaver-used-extensions weaver))))
-             (:COMMENT_TYPE nil)
-             (:ADD_CSS nil)
-             (:OVERWRITE_CSS nil)
-             (:COLORSCHEME nil)
-             (:ERROR_FORMAT nil)
-             (:MATHBLOCK
-                                        ; Put <code> tags in block so it displays tex nicely without JS.
-              (setf (weaver-used-math weaver) t)
-              (write-string "<div class=\"math-block\"><code>")
-              (when (not (equal (second expr) "displaymath"))
-                (format t "\\begin{~a}" (second expr)))
-              (write-separated-list (third expr) #\newline *standard-output*)
-              (when (not (equal (second expr) "displaymath"))
-                (format t "\\end{~a}" (second expr)))
-              (write-string "</code></div>"))
-             (:MATH
-                                        ; Use backticks to prevent markdown from formatting tex,
-                                        ; for example treating _ as emphasis.
-              (setf (weaver-used-math weaver) t)
-              (format t "<span class=\"math\">`~a`</span>"
-                      (second expr)))
-             (:TOC (weave-toc
-                    (weaver-toc weaver)
-                    (textblockdef-file def)))
-             (otherwise (error 'user-error
-                               :format-control "unknown prose command ~S"
-                               :format-arguments (first expr)))))
-          (t (error "unknown structure ~s" expr)))))
+        (cond ((stringp expr) (write-string expr)) 
+              ((commandp expr) 
+               (case (first expr)
+                 (:INCLUDE (weave-include
+                            (second expr)
+                            (textblockdef-file def)
+                            weaver
+                            nil))
+                 (:TITLE
+                  (setf (weaver-title weaver)
+                        (second expr)))
+                 (:C
+                  ; Also can act as a title
+                  (when (null (weaver-title weaver))
+                    (setf (weaver-title weaver)
+                          (second expr)))
+                  (incf (weaver-chapter-counter weaver))
+                  (setf (weaver-section-counter weaver) -1)
+                  (format t "<h1>~a<a id=\"~a\"></a></h1>~%" 
+                          (second expr)
+                          (chapter-id (weaver-chapter-counter weaver))))
+                 (:S
+                  (incf (weaver-section-counter weaver))
+                  (format t "<h2>~a. ~a<a id=\"~a\"></a></h2>~%" 
+                          (+ (weaver-section-counter weaver) 1)
+                          (second expr)
+                          (section-id 
+                            (weaver-section-counter weaver)
+                            (weaver-chapter-counter weaver))))
+                 (:CODE_TYPE
+                  (let* ((args (split-whitespace (second expr)))
+                         (language (first args))
+                         (extension (subseq (second args) 1)))
+                    (setf (gethash extension (weaver-code-type-table weaver)) language)
+                    (push extension (weaver-used-extensions weaver))))
+                 (:COMMENT_TYPE nil)
+                 (:ADD_CSS nil)
+                 (:OVERWRITE_CSS nil)
+                 (:COLORSCHEME nil)
+                 (:ERROR_FORMAT nil)
+                 (:MATHBLOCK
+                  ; Put <code> tags in block so it displays tex nicely without JS.
+                  (setf (weaver-used-math weaver) t)
+                  (write-string "<div class=\"math-block\"><code>")
+                  (when (not (equal (second expr) "displaymath"))
+                      (format t "\\begin{~a}" (second expr)))
+                  (write-separated-list (third expr) #\newline *standard-output*)
+                  (when (not (equal (second expr) "displaymath"))
+                      (format t "\\end{~a}" (second expr)))
+                  (write-string "</code></div>"))
+                 (:MATH
+                  ; Use backticks to prevent markdown from formatting tex,
+                  ; for example treating _ as emphasis. 
+                  (setf (weaver-used-math weaver) t)
+                  (format t "<span class=\"math\">`~a`</span>"
+                          (second expr)))
+                 (:TOC (weave-toc
+                         (weaver-toc weaver)
+                         (textblockdef-file def)))
+                 (otherwise (error 'user-error
+                                   :format-control "unknown prose command ~S"
+                                   :format-arguments (first expr)))))
+              (t (error "unknown structure ~s" expr)))))
 
 (defun weave-prosedef (weaver def)
    (let ((block (textblockdef-block def))
