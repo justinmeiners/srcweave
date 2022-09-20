@@ -71,7 +71,7 @@
 
     (when (and (not (getf options :weave))
                (not (getf options :tangle)))
-      (format *error-output* "warning: no tangle or weave specified."))
+      (warn "no tangle or weave command specified."))
 
     (setf *markdown-command*
           (getf options :md-compiler *markdown-command*))
@@ -99,7 +99,7 @@
         (format t "DONE~%")))))
 
 (defun unknown-option (condition)
-  (format *error-output* "warning: unknown option ~s!~%" (opts:option condition))
+  (warn "unknown option: ~a" (opts:option condition))
   (invoke-restart 'opts:skip-option))
 
 (defun toplevel ()

@@ -74,24 +74,29 @@
 (defun weave-include (title current-file weaver code-style)
   (multiple-value-bind (initial-def-id present)
       (gethash (textblock-slug title) (weaver-initial-def-table weaver))
-    (when (not present)
-      (error 'user-error
-             :format-control "attempting to include unknown block ~s"
-             :format-arguments (list title)))
 
-    (let ((other (gethash initial-def-id (weaver-def-table weaver))))
-      (format t "<em class=\"block-link nocode\" title=\"~a\">"
-              (if (equal current-file (textblockdef-file other))
-                         ""
-                         (textblockdef-file other)))
-      (when (textblockdef-weavable other)
+    ; find the first block that uses that identifier
+    (let* ((other (if present
+                      (gethash initial-def-id (weaver-def-table weaver))
+                      '()))
+           (hover-title-element
+             ; create hover text which tells the user which file the block is in.
+             (cond ((not other) " title=\"undefined block\"")
+                   ((equal current-file (textblockdef-file other)) "")
+                   (t
+                    (format nil " title=\"~a\""
+                            (textblockdef-file other))
+                    ))))
+      (format t "<em class=\"block-link nocode\"~a>" hover-title-element)
+
+      (when (and other (textblockdef-weavable other))
         (format t "<a href=\"~a\">" (block-anchor2 other current-file)))
       (format t
               (if code-style
                   "@{~a}"
                   "~a")
               title)
-      (when (textblockdef-weavable other)
+      (when (and other (textblockdef-weavable other))
         (write-string "</a>"))
       (write-string "</em>"))))
 
@@ -100,6 +105,7 @@
   '((#\& . "&amp;") (#\< . "&lt;") (#\> . "&gt;")))
 
 (defun escape-html (string)
+  "replace invalid HTML characters with their escaped versions."
   (reduce (lambda (string replace-pair)
             (ppcre:regex-replace-all (car replace-pair) string (cdr replace-pair)))
           *html-replace-list*
@@ -116,8 +122,10 @@
                              weaver
                              t))
                  (otherwise
-                   (format *error-output* "warning: unknown code command ~S~%" (first expr)))))
-              (t (error "unknown structure ~S" expr)))))
+                   ; this shouldn't happen.
+                   ; This relates to "block has not been fully resolved" in the tangle.
+                   (error "unknown code command ~S" expr))))
+              (t (error "internal error. unknown structure ~S" expr)))))
 
 (defun usage-tooltip (def other)
   "generate title attribute contents"
@@ -198,7 +206,7 @@
                         (loop for i from left to right do
                               (weave-code-line weaver (aref lines i) def)
                               (write-line ""))
-                        (format *error-output* "warning: empty block ~s~%" (textblockdef-title def)))
+                        (warn "weaving empty block ~s" (textblockdef-title def)))
 
     (write-line "</code></pre>"))
     (when (eq :DEFINE (textblockdef-operation def))
@@ -241,12 +249,7 @@
                          (language (first args))
                          (extension (subseq (second args) 1)))
                     (setf (gethash extension (weaver-code-type-table weaver)) language)
-                    (push extension (weaver-used-extensions weaver))))
-                 (:COMMENT_TYPE nil)
-                 (:ADD_CSS nil)
-                 (:OVERWRITE_CSS nil)
-                 (:COLORSCHEME nil)
-                 (:ERROR_FORMAT nil)
+                    (push extension (weaver-used-extensions weaver)))) 
                  (:MATHBLOCK
                   ; Put <code> tags in block so it displays tex nicely without JS.
                   (setf (weaver-used-math weaver) t)
@@ -267,6 +270,12 @@
                          (weaver-toc weaver)
                          (textblockdef-file def)))
                  (:ANCHOR (write-string ":anchor"))
+
+                 ; These commands are from Zach's Literate.
+                 ; We treat them as warnings instead of errors to make migration easier.
+                 ; It's possible they may be useful for us in the future.
+                 ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
+                  (warn "deprecated Literate prose command ~s. ignored." (first expr)))
                  (otherwise (error 'user-error
                                    :format-control "unknown prose command ~S"
                                    :format-arguments (first expr)))))
@@ -314,12 +323,15 @@
         ; we first write to data in RAM to get formatting info for environment variables.
         (let ((text (with-output-to-string (s)
                       (weave-html weaver s source-defs))))
+
+          ; set environmental variables based on weave results.
           (setf (uiop:getenv "LIT_TYPES")
                 (extensions-to-type-string (weaver-code-type-table weaver)
                                            (weaver-used-extensions weaver)))
           (setf (uiop:getenv "LIT_TITLE") (or (weaver-title weaver) ""))
           (setf (uiop:getenv "LIT_MATH") (if (weaver-used-math weaver) "1" ""))
 
+          ; run format on weave results.
           (uiop:run-program (split-whitespace *format-command*)
                             :output output-stream
                             :error-output t

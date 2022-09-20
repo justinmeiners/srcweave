@@ -1,14 +1,22 @@
 # Unused block
 
-
-One block is unused:
+An unused block should display a warning, but no errors.
 
 --- unused block
-Hello
+Hello 
 ---
 
-This counts as it's own usage.
+Including an unknown block should also be a warning, whether it's 
+in prose, like @{undefined block} or in the code.
+
+--- including undefined
+Hello @{undefined block}
+---
+
+File blocks (prefixed with `/`) are terminal.
+These blocks are never "unused" as they produce a file, so no warning should be produced.
 
 --- /used block.txt
-Hello
+@{including undefined}
 ---
+

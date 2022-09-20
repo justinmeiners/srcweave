@@ -1,6 +1,6 @@
 # Block with no name
 
-A block with no name should fail.
+A block with no name should be an error.
 
 ---
 printf("Hello, World!\n");
