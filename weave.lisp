@@ -35,6 +35,14 @@
   (used-extensions nil :type list)
   (used-math nil :type boolean))
 
+(comment
+ (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+        (weaver (make-weaver-default file-defs)))
+   (weaver-toc weaver))
+ ; => ((:FILE "dev.lit" (:C "My test lit file" (:S "Foobar") (:S "Foobazs")))
+ ; (:FILE "scratch.lit" (:C "My scratch lit file" (:S "Scratch"))))
+ )
+
 (defun lit-page-filename (filename)
   (concatenate 'string
                (uiop:split-name-type filename)
@@ -258,6 +266,7 @@
                  (:TOC (weave-toc
                          (weaver-toc weaver)
                          (textblockdef-file def)))
+                 (:ANCHOR (write-string ":anchor"))
                  (otherwise (error 'user-error
                                    :format-control "unknown prose command ~S"
                                    :format-arguments (first expr)))))

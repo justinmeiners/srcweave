@@ -30,10 +30,30 @@
                   :format-control "unknown modifier ~s"
                   :format-arguments x))))
 
+(defparameter *anchor-pattern*
+  (ppcre:create-scanner '(:SEQUENCE "@{" (:GREEDY-REPETITION 1 2 #\#)
+                          (:GREEDY-REPETITION 1 NIL :WHITESPACE-CHAR-CLASS)
+                          (:REGISTER (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)) #\})))
+
+(defun parse-anchor (line)
+  (let ((parts (ppcre:split *anchor-pattern* line :with-registers-p t)))
+    (mapcar-indexed (lambda (string i)
+                      (if (evenp i)
+                          (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1")
+                          (list :ANCHOR string)))
+                    parts)))
+
+(comment
+ (let ((line "Foobar @{# Baz} @{buz} @@{fizz}"))
+   (parse-anchor line))
+ ; => ("Foobar " (:ANCHOR "Baz") " @{buz} @{fizz}")
+ )
+
 (defparameter *ref-pattern*
   (ppcre:create-scanner '(:SEQUENCE
                           (:NEGATIVE-LOOKBEHIND #\@)
                           "@{"
+                          (:negative-lookahead #\#)
                           (:REGISTER (:GREEDY-REPETITION 1 NIL (:INVERTED-CHAR-CLASS #\})))
                           #\})))
 
@@ -64,7 +84,6 @@
       :START-ANCHOR
       (:REGISTER (:GREEDY-REPETITION 1 nil #\#))
       (:GREEDY-REPETITION 1 nil :WHITESPACE-CHAR-CLASS))))
-
 
 (defparameter *math-inline-pattern*
   (ppcre:create-scanner
@@ -111,27 +130,84 @@
     (push (subseq line start) expr)
     (nreverse expr)))
 
+(defun parse-repeatedly (parsers line)
+  "Parses line with each parser.
+Line starts off as a string. After the first parse, it will be a list of regular text and parsed segments.
+
+Example:
+  \"Some text @{some ref}\"
+  will turn into
+  (\"Some text\" (:INCLUDE \"some ref\")).
+
+The subsequent parsers will be mapped over the result of the first parse."
+  (cond
+    ((null line) nil)
+    ((null parsers) line)
+    ((stringp line)
+     (parse-repeatedly
+      (cdr parsers)
+      (funcall (car parsers) line)))
+    ((symbolp (car line)) (list line))
+    (t (alexandria-2:mappend
+        (lambda (l)
+          (parse-repeatedly parsers l))
+        line))))
+
+(comment
+ (parse-repeatedly (list #'parse-anchor #'parse-refs #'parse-math-text)
+                   "Foobar @{# Baz} \\begin{math}n + m\\end{math} buz @{fizz}")
+ ; => ("Foobar " (:ANCHOR "Baz") " " (:MATH "n + m") " buz " (:INCLUDE "fizz"))
+ )
+
 (defun parse-prose-line (line)
   (or 
-    (multiple-value-bind (match groups)
-        (ppcre:scan-to-strings *heading-pattern* line)
-      (if match
-          (list (case (length (aref groups 0))
-                  (1 (list :C (subseq line (length match))))
-                  (2 (list :S (subseq line (length match))))
-                  (otherwise line)))
-          nil))
-    (multiple-value-bind (match groups)
-        (ppcre:scan-to-strings *command-pattern* line)
-      (if match
-          (list (list (intern (string-upcase (aref groups 0)) :KEYWORD)
-                      (subseq line (length match))))
-          nil))
+   (multiple-value-bind (match groups)
+       (ppcre:scan-to-strings *heading-pattern* line)
+     (if match
+         (list (case (length (aref groups 0))
+                 (1 (list :C (subseq line (length match))))
+                 (2 (list :S (subseq line (length match))))
+                 (otherwise line)))
+         nil))
+   (multiple-value-bind (match groups)
+       (ppcre:scan-to-strings *command-pattern* line)
+     (if match
+         (list (list (intern (string-upcase (aref groups 0)) :KEYWORD)
+                     (subseq line (length match))))
+         nil))
+   ;; Leaving this commented out while in PR review so that it's easy to try
+   ;; back and forth.
+   (comment
     (alexandria-2:mappend (lambda (expr)
                             (if (stringp expr)
                                 (parse-math-text expr)
                                 (list expr)))
-                          (parse-refs line))))
+                          (parse-refs line)))
+   (parse-repeatedly
+    (list #'parse-refs #'parse-math-text #'parse-anchor)
+    line)))
+
+(comment
+ (parse-prose-line "\\n")
+ ; => ("\\n")
+ (parse-prose-line "")
+ ; => NIL
+ (parse-prose-line "Foobar @{# Baz} \\begin{math}n + m\\end{math} buz @{fizz}")
+ ; => ("Foobar " (:ANCHOR "Baz") " " (:MATH "n + m") " buz " (:INCLUDE "fizz"))
+ (parse-prose-line "Foobar @{fizz} \\begin{math}n + m\\end{math} buz @{# Baz}")
+ ; => ("Foobar " (:INCLUDE "fizz") " " (:MATH "n + m") " buz " (:ANCHOR "Baz"))
+ (parse-prose-line "# Some heading @{with a ref}")
+ ; => ((:C "Some heading @{with a ref}"))
+ (mapcar #'parse-prose-line
+      '("# Foobar"
+        "@{bazz}"
+        ""
+        "@{# Foobar}"))
+ ; => (((:C "Foobar")) ("" (:INCLUDE "bazz")) NIL ("@{# Foobar}"))          <- original
+ ; => (((:C "Foobar")) ((:INCLUDE "bazz")) NIL ("" (:ANCHOR "Foobar")))     <- new
+ ; Not sure why this   (:INCLUDE...)   is different between the two.
+ ; I think it will still work. And everything else looks the same.
+ )
 
 (defparameter *block-start-pattern*
   (ppcre:create-scanner '(:SEQUENCE :START-ANCHOR "---")))
