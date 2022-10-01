@@ -23,3 +23,5 @@ Here's a ref. @{foobaz} What's it do?
 --- foobaz
 (format nil (* 2 2))
 ---
+
+# Section 2

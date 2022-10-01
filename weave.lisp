@@ -38,7 +38,8 @@
 (comment
  (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
         (weaver (make-weaver-default file-defs)))
-   (weaver-toc weaver))
+   weaver)
+
  ; => ((:FILE "dev.lit" (:C "My test lit file" (:S "Foobar") (:S "Foobazs")))
  ; (:FILE "scratch.lit" (:C "My scratch lit file" (:S "Scratch"))))
  )

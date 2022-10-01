@@ -30,23 +30,47 @@
                   :format-control "unknown modifier ~s"
                   :format-arguments x))))
 
+(comment
+ (ppcre:parse-string
+  "@\{(#{1,2}\\s.*?)\}")
+ ; => (:SEQUENCE "@{"
+ ; (:REGISTER
+ ;  (:SEQUENCE (:GREEDY-REPETITION 1 2 #\#) #\s
+ ;   (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)))
+ ; #\})
+ )
+
 (defparameter *anchor-pattern*
-  (ppcre:create-scanner '(:SEQUENCE "@{" (:GREEDY-REPETITION 1 2 #\#)
-                          (:GREEDY-REPETITION 1 NIL :WHITESPACE-CHAR-CLASS)
-                          (:REGISTER (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)) #\})))
+  (ppcre:create-scanner '(:SEQUENCE "@{"
+                          (:REGISTER
+                           (:SEQUENCE (:GREEDY-REPETITION 1 2 #\#) :WHITESPACE-CHAR-CLASS
+                            (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)))
+                          #\})
+                        ))
 
 (defun parse-anchor (line)
   (let ((parts (ppcre:split *anchor-pattern* line :with-registers-p t)))
     (mapcar-indexed (lambda (string i)
                       (if (evenp i)
-                          (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1")
-                          (list :ANCHOR string)))
+                          ;; Not sure what to do write here. Should `parse-anchor' have
+                          ;; the duplicated escape logic?
+                          ;; I'm leaning towards duplicate the same escape logic from `parse-ref' to here.
+                          (progn
+                            string
+                            ;; or...
+                            (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1"))
+                          (list :ANCHOR (if (eql (char string 1) #\#)
+                                            (list :S (ppcre:regex-replace "##\\s+" string ""))
+                                            (list :C (ppcre:regex-replace "#\\s+" string ""))))))
                     parts)))
 
+
 (comment
- (let ((line "Foobar @{# Baz} @{buz} @@{fizz}"))
+ ;; How should escaping work if we go this route of parse-anchor+parse-ref and parse-repeatedly?
+ (let ((line "Foobar @{# Baz} @{## Biz} @{buz} @@{fizz}"))
    (parse-anchor line))
- ; => ("Foobar " (:ANCHOR "Baz") " @{buz} @{fizz}")
+ ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:ANCHOR (:S "Biz")) " @{buz} @@{fizz}")
+ ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:ANCHOR (:S "Biz")) " @{buz} @{fizz}")
  )
 
 (defparameter *ref-pattern*
@@ -135,11 +159,18 @@
 Line starts off as a string. After the first parse, it will be a list of regular text and parsed segments.
 
 Example:
-  \"Some text @{some ref}\"
+  \"Some @{# some chapter} text @{some ref}\"
   will turn into
-  (\"Some text\" (:INCLUDE \"some ref\")).
+  (\"Some \" (:ANCHOR \"#some chapter\") \"text \" (:INCLUDE \"some ref\")).
 
-The subsequent parsers will be mapped over the result of the first parse."
+The subsequent parsers will be mapped over the result of the first parse.
+
+NOTE:
+There's at least one issue with this.
+`parse-refs' treats the double `@@' as an escape sequence.
+Instead of turning `@@{# foo}' into `@<a href='# foo'></a>' it turns it into `@{# foo}'.
+So if we first `parse-refs' and turn `@@{# foo}' into `@{# foo}' and then run `parse-anchors' after that
+then we're bypassing our escape mechanism."
   (cond
     ((null line) nil)
     ((null parsers) line)
@@ -188,14 +219,16 @@ The subsequent parsers will be mapped over the result of the first parse."
     line)))
 
 (comment
+ ;; Testing out the `parse-repeatedly' behavior.
+
  (parse-prose-line "\\n")
  ; => ("\\n")
  (parse-prose-line "")
  ; => NIL
  (parse-prose-line "Foobar @{# Baz} \\begin{math}n + m\\end{math} buz @{fizz}")
- ; => ("Foobar " (:ANCHOR "Baz") " " (:MATH "n + m") " buz " (:INCLUDE "fizz"))
+ ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:MATH "n + m") " buz " (:INCLUDE "fizz"))
  (parse-prose-line "Foobar @{fizz} \\begin{math}n + m\\end{math} buz @{# Baz}")
- ; => ("Foobar " (:INCLUDE "fizz") " " (:MATH "n + m") " buz " (:ANCHOR "Baz"))
+ ; => ("Foobar " (:INCLUDE "fizz") " " (:MATH "n + m") " buz " (:ANCHOR (:C "Baz")))
  (parse-prose-line "# Some heading @{with a ref}")
  ; => ((:C "Some heading @{with a ref}"))
  (mapcar #'parse-prose-line
@@ -203,10 +236,7 @@ The subsequent parsers will be mapped over the result of the first parse."
         "@{bazz}"
         ""
         "@{# Foobar}"))
- ; => (((:C "Foobar")) ("" (:INCLUDE "bazz")) NIL ("@{# Foobar}"))          <- original
- ; => (((:C "Foobar")) ((:INCLUDE "bazz")) NIL ("" (:ANCHOR "Foobar")))     <- new
- ; Not sure why this   (:INCLUDE...)   is different between the two.
- ; I think it will still work. And everything else looks the same.
+ ; => (((:C "Foobar")) ((:INCLUDE "bazz")) NIL ("" (:ANCHOR (:C "Foobar"))))
  )
 
 (defparameter *block-start-pattern*
@@ -263,6 +293,15 @@ The subsequent parsers will be mapped over the result of the first parse."
                             (textblock-lines (textblockdef-block def)))
         (go TEXT)))
 
+(comment
+ ;; Just want to get a feel for what the def-table looks like
+ (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+        (weaver (make-weaver-default file-defs)))
+   (let ((defs (weaver-def-table weaver)))
+     (maphash (lambda (k v)
+                (format t "~a	~a~%" k v))
+              defs)))
+ )
 
 (defparameter *math-block-pattern*
   (ppcre:create-scanner
