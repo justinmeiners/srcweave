@@ -335,7 +335,7 @@
   (uiop:merge-pathnames* 
     (make-pathname
       :name (pathname-name (uiop:ensure-pathname file-path :want-file t))
-      :type "html")
+      :type (if (stringp *markdown-command*) "html" "md"))
     base))
 
 (defun weave (file-defs output-dir)
