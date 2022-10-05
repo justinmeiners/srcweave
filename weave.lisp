@@ -295,7 +295,7 @@
               (split-whitespace *markdown-command*)
               :input :stream 
               :output stream
-              :error-output *error-output*)))
+              :error-output t)))
 
     (let ((*standard-output* (uiop:process-info-input md)))
       (weave-blocks weaver source-defs))
