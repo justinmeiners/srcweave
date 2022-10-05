@@ -14,6 +14,10 @@
 
 (in-package :srcweave)
 
+(defun strip-line (line)
+    (if (not line) line
+        (uiop:stripln line)))
+
 ; PARSE: Capture lines, determine commands, organize them into blocks.
 
 (defun parse-block-operator (x)
@@ -173,7 +177,7 @@
                                                       modifiers) )))
 
         TEXT
-        (setf line (read-line stream nil))
+        (setf line (strip-line (read-line stream nil)))
         (incf n)
         (when (null line)
           (error 'user-error
@@ -203,7 +207,7 @@
          (math-lines nil))
 
     TEXT
-    (setf line (read-line stream nil))
+    (setf line (strip-line (read-line stream nil)))
     (incf n)
 
     (when (or (null line)
@@ -224,7 +228,7 @@
     (go TEXT)
 
     MATH
-    (setf line (read-line stream nil))
+    (setf line (strip-line (read-line stream nil)))
     (incf n)
     (when (null line)
       (error 'user-error
