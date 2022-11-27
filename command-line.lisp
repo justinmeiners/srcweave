@@ -14,6 +14,11 @@
 
 (in-package :srcweave)
 
+(defun parse-empty-arg-as-null (arg)
+  (if (and (stringp arg) (= (length arg) 0))
+      '()
+      arg))
+
 (opts:define-opts
   (:name :help
          :description "Show program help."
@@ -36,12 +41,12 @@
 
   (:name :md-compiler
          :description "Markdown command for formatting documents. Default: markdown."
-         :arg-parser #'identity
+         :arg-parser #'parse-empty-arg-as-null
          :long "md-compiler")
 
   (:name :formatter
          :description "Formatter program for improving HTML output. Try srcweave-format"
-         :arg-parser #'identity
+         :arg-parser #'parse-empty-arg-as-null
          :long "formatter")
 
   (:name :force-output

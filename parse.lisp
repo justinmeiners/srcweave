@@ -14,6 +14,10 @@
 
 (in-package :srcweave)
 
+(defun strip-line (line)
+    (if (not line) line
+        (uiop:stripln line)))
+
 ; PARSE: Capture lines, determine commands, organize them into blocks.
 
 (defun parse-block-operator (x)
@@ -279,7 +283,7 @@ then we're bypassing our escape mechanism."
                                                       modifiers) )))
 
         TEXT
-        (setf line (read-line stream nil))
+        (setf line (strip-line (read-line stream nil)))
         (incf n)
         (when (null line)
           (error 'user-error
@@ -318,7 +322,7 @@ then we're bypassing our escape mechanism."
          (math-lines nil))
 
     TEXT
-    (setf line (read-line stream nil))
+    (setf line (strip-line (read-line stream nil)))
     (incf n)
 
     (when (or (null line)
@@ -339,7 +343,7 @@ then we're bypassing our escape mechanism."
     (go TEXT)
 
     MATH
-    (setf line (read-line stream nil))
+    (setf line (strip-line (read-line stream nil)))
     (incf n)
     (when (null line)
       (error 'user-error

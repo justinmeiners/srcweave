@@ -27,6 +27,9 @@
     (multiple-value-bind (output error status)
         (uiop:run-program (list "tsort")
                           :ignore-error-status t
+
+                          ; The lines output specifier should also strip each line,
+                          ; as if uiop:stripln were called.
                           :output :lines
                           :error-output t
                           :input (make-string-input-stream (get-output-stream-string s)))
