@@ -270,7 +270,8 @@
                  (:TOC (weave-toc
                          (weaver-toc weaver)
                          (textblockdef-file def)))
-                 (:ANCHOR (write-string ":anchor"))
+                 (:ANCHOR (let ((ref (cadr expr)))
+                            ))
 
                  ; These commands are from Zach's Literate.
                  ; We treat them as warnings instead of errors to make migration easier.
