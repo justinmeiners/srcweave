@@ -65,10 +65,10 @@
 
     (when (getf options :help)
       (opts:describe
-        :prefix "Literate programming system. Write code to be read by humans, not machines."
-        :usage-of "srcweave"
-        :suffix "Created by Justin Meiners (2022)"
-        :args "LITFILE")
+       :prefix "Literate programming system. Write code to be read by humans, not machines."
+       :usage-of "srcweave"
+       :suffix "Created by Justin Meiners (2022)"
+       :args "LITFILE")
       (opts:exit 0))
 
     (when (null free-args) 
@@ -90,13 +90,13 @@
           (weave-path (getf options :weave))
           (tangle-path (getf options :tangle)))
 
-     (when tangle-path
+      (when tangle-path
         (format t "TANGLE~%")
         (tangle (alexandria-2:mappend #'cdr file-defs)
                 tangle-path
                 :ignore-dates ignore-dates)
 
-       (format t "DONE~%"))
+        (format t "DONE~%"))
       (when weave-path
         (format t "WEAVE~%")
         (weave file-defs

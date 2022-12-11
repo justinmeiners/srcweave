@@ -1,0 +1,12 @@
+# My scratch lit file
+
+## Scratch
+
+--- scratch.c
+(format nil (* 2 2))
+@{scratch-thing}
+---
+
+--- scratch-thing
+(+ 9 9)
+---

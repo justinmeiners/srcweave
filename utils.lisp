@@ -82,3 +82,7 @@
 
 (define-condition user-error (simple-error) ())
 
+(defmacro comment (&rest body)
+  (declare (ignore body))
+  nil)
+

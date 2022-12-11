@@ -35,6 +35,12 @@
   (used-extensions nil :type list)
   (used-math nil :type boolean))
 
+(comment
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
+        (weaver (make-weaver-default file-defs)))
+   weaver)
+ )
+
 (defun lit-page-filename (filename)
   (concatenate 'string
                (uiop:split-name-type filename)
@@ -206,71 +212,80 @@
   (write-line "</div>"))
 
 (defun weave-prose-line (weaver line def)
-  (loop for expr in line do
-        (cond ((stringp expr) (write-string expr)) 
-              ((commandp expr) 
-               (case (first expr)
-                 (:INCLUDE (weave-include
-                            (second expr)
-                            (textblockdef-file def)
-                            weaver
-                            nil))
-                 (:TITLE
+  (let ((linkmap (create-global-toc-linkmap (weaver-toc weaver))))
+    (loop for expr in line do
+      (cond ((stringp expr) (write-string expr))
+            ((commandp expr)
+             (case (first expr)
+               (:INCLUDE (weave-include
+                          (second expr)
+                          (textblockdef-file def)
+                          weaver
+                          nil))
+               (:TITLE
+                (setf (weaver-title weaver)
+                      (second expr)))
+               (:C
+                                        ; Also can act as a title
+                (when (null (weaver-title weaver))
                   (setf (weaver-title weaver)
                         (second expr)))
-                 (:C
-                  ; Also can act as a title
-                  (when (null (weaver-title weaver))
-                    (setf (weaver-title weaver)
-                          (second expr)))
-                  (incf (weaver-chapter-counter weaver))
-                  (setf (weaver-section-counter weaver) -1)
-                  (format t "<h1>~a<a id=\"~a\"></a></h1>~%" 
-                          (second expr)
-                          (chapter-id (weaver-chapter-counter weaver))))
-                 (:S
-                  (incf (weaver-section-counter weaver))
-                  (format t "<h2>~a. ~a<a id=\"~a\"></a></h2>~%" 
-                          (+ (weaver-section-counter weaver) 1)
-                          (second expr)
-                          (section-id 
-                            (weaver-section-counter weaver)
-                            (weaver-chapter-counter weaver))))
-                 (:CODE_TYPE
-                  (let* ((args (split-whitespace (second expr)))
-                         (language (first args))
-                         (extension (subseq (second args) 1)))
-                    (setf (gethash extension (weaver-code-type-table weaver)) language)
-                    (push extension (weaver-used-extensions weaver)))) 
-                 (:MATHBLOCK
-                  ; Put <code> tags in block so it displays tex nicely without JS.
-                  (setf (weaver-used-math weaver) t)
-                  (write-string "<div class=\"math-block\"><code>")
-                  (when (not (equal (second expr) "displaymath"))
-                      (format t "\\begin{~a}" (second expr)))
-                  (write-separated-list (third expr) #\newline *standard-output*)
-                  (when (not (equal (second expr) "displaymath"))
-                      (format t "\\end{~a}" (second expr)))
-                  (write-string "</code></div>"))
-                 (:MATH
-                  ; Use backticks to prevent markdown from formatting tex,
-                  ; for example treating _ as emphasis. 
-                  (setf (weaver-used-math weaver) t)
-                  (format t "<span class=\"math\">`~a`</span>"
-                          (second expr)))
-                 (:TOC (weave-toc
-                         (weaver-toc weaver)
-                         (textblockdef-file def)))
+                (incf (weaver-chapter-counter weaver))
+                (setf (weaver-section-counter weaver) -1)
+                (format t "<h1>~a<a id=\"~a\"></a></h1>~%"
+                        (second expr)
+                        (chapter-id (weaver-chapter-counter weaver))))
+               (:S
+                (incf (weaver-section-counter weaver))
+                (format t "<h2>~a. ~a<a id=\"~a\"></a></h2>~%"
+                        (+ (weaver-section-counter weaver) 1)
+                        (second expr)
+                        (section-id
+                         (weaver-section-counter weaver)
+                         (weaver-chapter-counter weaver))))
+               (:CODE_TYPE
+                (let* ((args (split-whitespace (second expr)))
+                       (language (first args))
+                       (extension (subseq (second args) 1)))
+                  (setf (gethash extension (weaver-code-type-table weaver)) language)
+                  (push extension (weaver-used-extensions weaver))))
+               (:MATHBLOCK
+                                        ; Put <code> tags in block so it displays tex nicely without JS.
+                (setf (weaver-used-math weaver) t)
+                (write-string "<div class=\"math-block\"><code>")
+                (when (not (equal (second expr) "displaymath"))
+                  (format t "\\begin{~a}" (second expr)))
+                (write-separated-list (third expr) #\newline *standard-output*)
+                (when (not (equal (second expr) "displaymath"))
+                  (format t "\\end{~a}" (second expr)))
+                (write-string "</code></div>"))
+               (:MATH
+                                        ; Use backticks to prevent markdown from formatting tex,
+                                        ; for example treating _ as emphasis.
+                (setf (weaver-used-math weaver) t)
+                (format t "<span class=\"math\">`~a`</span>"
+                        (second expr)))
+               (:TOC (weave-toc
+                      (weaver-toc weaver)
+                      (textblockdef-file def)))
+               (:ANCHOR
+                (let ((ref (cadadr expr)))
+                  (write-string
+                   (format
+                    nil
+                    "<a href=\"~a\">~a</a>"
+                    (gethash ref linkmap)
+                    ref))))
 
-                 ; These commands are from Zach's Literate.
-                 ; We treat them as warnings instead of errors to make migration easier.
-                 ; It's possible they may be useful for us in the future.
-                 ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
-                  (warn "deprecated Literate prose command ~s. ignored." (first expr)))
-                 (otherwise (error 'user-error
-                                   :format-control "unknown prose command ~S"
-                                   :format-arguments (first expr)))))
-              (t (error "unknown structure ~s" expr)))))
+                                        ; These commands are from Zach's Literate.
+                                        ; We treat them as warnings instead of errors to make migration easier.
+                                        ; It's possible they may be useful for us in the future.
+               ((:COMMENT_TYPE :ADD_CSS :OVERWRITE_CSS :COLORSCHEME :ERROR_FORMAT)
+                (warn "deprecated Literate prose command ~s. ignored." (first expr)))
+               (otherwise (error 'user-error
+                                 :format-control "unknown prose command ~S"
+                                 :format-arguments (first expr)))))
+            (t (error "unknown structure ~s" expr))))))
 
 (defun weave-prosedef (weaver def)
    (let ((block (textblockdef-block def))
@@ -279,6 +294,13 @@
      (loop for line across (textblock-lines block) do
            (weave-prose-line weaver line def)
            (write-line ""))))
+
+(comment
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
+        (weaver (make-weaver-default file-defs))
+        (prosedef (nth 6 (cdar file-defs))))
+   (weave-prosedef weaver prosedef))
+ )
 
 (defun weave-blocks (weaver source-defs)
     (dolist (def source-defs)
