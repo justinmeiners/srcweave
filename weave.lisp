@@ -36,12 +36,9 @@
   (used-math nil :type boolean))
 
 (comment
- (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
         (weaver (make-weaver-default file-defs)))
    weaver)
-
- ; => ((:FILE "dev.lit" (:C "My test lit file" (:S "Foobar") (:S "Foobazs")))
- ; (:FILE "scratch.lit" (:C "My scratch lit file" (:S "Scratch"))))
  )
 
 (defun lit-page-filename (filename)
@@ -299,11 +296,10 @@
            (write-line ""))))
 
 (comment
- (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
         (weaver (make-weaver-default file-defs))
         (prosedef (nth 6 (cdar file-defs))))
    (weave-prosedef weaver prosedef))
-
  )
 
 (defun weave-blocks (weaver source-defs)

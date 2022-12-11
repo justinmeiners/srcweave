@@ -340,7 +340,7 @@ So, `parse-escapes' must be after `parse-refs' and `parse-anchors' in the list o
 ; 2
 
  ;; Just want to get a feel for what the def-table looks like
- (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
         (weaver (make-weaver-default file-defs)))
    (let ((defs (weaver-def-table weaver)))
      (progn

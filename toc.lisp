@@ -50,6 +50,10 @@
           file-def-pairs))
 
 (defun create-global-toc-linkmap (toc)
+  "Creates a map of chapter/section names to the href when woven into a book file.html#s0:1.
+The current implementation has the downside that subsequent chapter/section names
+will overwrite antecedent chapter/section entries in the map. Users will just have
+to be aware of this and make their chapter/section names unique."
   (do ((linkmap (make-hash-table :test 'equal))
        (file (car toc) (car (cdr toc)))
        (toc toc (cdr toc)))
@@ -71,22 +75,18 @@
             (setf (gethash (cadr section) linkmap) link)))))))
 
 (comment
- (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+ (let* ((file-defs (parse-lit-files '("dev/dev.lit" "dev/scratch.lit")))
         (linkmap (create-global-toc-linkmap (create-global-toc file-defs)))
         (res nil))
    (maphash
-    (lambda (k _)
-      (setf res (cons k res)))
+    (lambda (k v)
+      (setf res (cons (list k v) res)))
     linkmap)
-   (list res (gethash "Foobar" linkmap)))
+   res)
 
-; My test lit file: dev.html#c0
-; Foobar: dev.html#s0:0
-; Foobazs: dev.html#s0:1
-; Section 2: dev.html#c1
-; My scratch lit file: scratch.html#c0
-; Scratch: scratch.html#s0:0
-;  => NIL
+ ; => (("Scratch" "scratch.html#s0:0") ("My scratch lit file" "scratch.html#c0")
+ ;     ("Section 2" "dev.html#c1") ("Foobazs" "dev.html#s0:1")
+ ;     ("Foobar" "dev.html#s0:0") ("My test lit file" "dev.html#c0"))
  )
 
 (defun weave-toc-section (name file chapter-counter section-counter)
