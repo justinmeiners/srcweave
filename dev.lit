@@ -18,10 +18,25 @@ What follows is foobar.lisp.
 
 And this is the content of the [Foobaz](@Foobazs) section.
 
+
 Here's a ref. @{foobaz} What's it do?
+
+@{scratch-thing}
+
+--- scratch-things
+(format "duplicate")
+---
 
 --- foobaz
 (format nil (* 2 2))
 ---
 
 # Section 2
+
+Here's a link to the scratch.lit code block.
+
+@{scratch-thing}
+
+And here's  a link to a scratch.lit section.
+
+@@{scratch.lit @{scratch.c}}

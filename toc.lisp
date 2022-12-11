@@ -49,6 +49,42 @@
                         (textblockdef-create-toc (cdr pair)))))
           file-def-pairs))
 
+(defun create-global-toc-linkmap (toc)
+  (do ((linkmap (make-hash-table))
+       (file (car toc) (car (cdr toc)))
+       (toc toc (cdr toc)))
+      ((null file) linkmap)
+    (do ((chapters (cddr file) (cdr chapters))
+         (chapter (caddr file) (car (cdr chapters)))
+         (chapter-counter 0 (incf chapter-counter)))
+        ((null chapter))
+      (let ((link (format nil "~a#c~a" (lit-page-filename (cadr file)) chapter-counter)))
+        (setf (gethash (cadr (subseq chapter 0 2)) linkmap) link)
+        (do ((sections (cddr chapter) (cdr sections))
+             (section (caddr chapter) (car (cdr sections)))
+             (section-counter 0 (incf section-counter)))
+            ((null section))
+          (let ((link (format nil "~a#s~a:~a"
+                              (lit-page-filename (cadr file))
+                              chapter-counter
+                              section-counter)))
+            (setf (gethash (cadr section) linkmap) link)))))))
+
+(comment
+ (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit"))))
+   (maphash
+    (lambda (k v)
+      (format t "~a: ~a~%" k v))
+    (create-global-toc-linkmap (create-global-toc file-defs))))
+
+; My test lit file: dev.html#c0
+; Foobar: dev.html#s0:0
+; Foobazs: dev.html#s0:1
+; Section 2: dev.html#c1
+; My scratch lit file: scratch.html#c0
+; Scratch: scratch.html#s0:0
+;  => NIL
+ )
 
 (defun weave-toc-section (name file chapter-counter section-counter)
   (format t "<li><a href=\"~a\">~a</a></li>"

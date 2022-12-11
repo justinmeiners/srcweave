@@ -302,9 +302,16 @@ then we're bypassing our escape mechanism."
  (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
         (weaver (make-weaver-default file-defs)))
    (let ((defs (weaver-def-table weaver)))
-     (maphash (lambda (k v)
-                (format t "~a	~a~%" k v))
-              defs)))
+     (progn
+       (maphash (lambda (k v)
+                  (format t "~a	~a~%" k v)
+                  )
+                defs)
+       (maphash
+        (lambda (k v)
+          (format t "~a: ~a~%" k v))
+        (create-global-toc-linkmap (create-global-toc file-defs))))))
+
  )
 
 (defparameter *math-block-pattern*
