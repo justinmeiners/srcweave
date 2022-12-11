@@ -34,35 +34,53 @@
                   :format-control "unknown modifier ~s"
                   :format-arguments x))))
 
+;; The *anchor-pattern* and *ref-pattern* have negative lookbehinds to detect
+;; and ignore `@@' so that you can weave `@@{some-reference}' into
+;; `@{some-reference}'.
+;;
+;; So, `parse-anchor' and `parse-ref' will perform no action on those since they
+;; won't match.
+;;
+;;`parse-escapes' must run *after* `parse-anchor' and `parse-ref'. If it runs
+;; before, then it will translate `@@{some-ref}' to `@{some-ref}' which will
+;; then get translated to `(:INCLUDE "some-ref")'.
+(defparameter *escape-pattern*
+  (ppcre:create-scanner "@@({[^}]+})"))
+
+(defun parse-escapes (line)
+  (let ((parts (ppcre:split *escape-pattern* line :with-registers-p t)))
+    (mapcar-indexed
+     (lambda (string i)
+       (if (evenp i)
+           string
+           (format nil "@~a" string)))
+     parts)))
+
 (comment
- (ppcre:parse-string
-  "@\{(#{1,2}\\s.*?)\}")
- ; => (:SEQUENCE "@{"
- ; (:REGISTER
- ;  (:SEQUENCE (:GREEDY-REPETITION 1 2 #\#) #\s
- ;   (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)))
- ; #\})
+ (parse-escapes "Foobar @{# Baz} @@{# Buzz}")
+ ; => ("Foobar @{# Baz} " "@{# Buzz}")
  )
 
 (defparameter *anchor-pattern*
-  (ppcre:create-scanner '(:SEQUENCE "@{"
+  (ppcre:create-scanner '(:SEQUENCE
+                          (:NEGATIVE-LOOKBEHIND #\@)
+                          "@{"
                           (:REGISTER
                            (:SEQUENCE (:GREEDY-REPETITION 1 2 #\#) :WHITESPACE-CHAR-CLASS
                             (:NON-GREEDY-REPETITION 0 NIL :EVERYTHING)))
                           #\})
-                        ))
+                        )
+  "This pattern matches @{# Some Chapter} and @{## Some Section}.
+It doesn't match the escaped @@{# Some Chapter}.")
 
 (defun parse-anchor (line)
+  "Searches line for `*anchor-pattern*' and returns
+(:ANCHOR (:C \"Some Chapter\")) for @{# Some Chapter}
+and (:ANCHOR (:S \"Some Section\")) for @{## Some Section}."
   (let ((parts (ppcre:split *anchor-pattern* line :with-registers-p t)))
     (mapcar-indexed (lambda (string i)
                       (if (evenp i)
-                          ;; Not sure what to do write here. Should `parse-anchor' have
-                          ;; the duplicated escape logic?
-                          ;; I'm leaning towards duplicate the same escape logic from `parse-ref' to here.
-                          (progn
-                            string
-                            ;; or...
-                            (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1"))
+                          string
                           (list :ANCHOR (if (eql (char string 1) #\#)
                                             (list :S (ppcre:regex-replace "##\\s+" string ""))
                                             (list :C (ppcre:regex-replace "#\\s+" string ""))))))
@@ -70,18 +88,17 @@
 
 
 (comment
- ;; How should escaping work if we go this route of parse-anchor+parse-ref and parse-repeatedly?
- (let ((line "Foobar @{# Baz} @{## Biz} @{buz} @@{fizz}"))
+ (let ((line "Foobar @{# Baz} @{## Biz} @@{# Boz} @{buz} @@{fizz}"))
    (parse-anchor line))
- ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:ANCHOR (:S "Biz")) " @{buz} @@{fizz}")
- ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:ANCHOR (:S "Biz")) " @{buz} @{fizz}")
+ ; => ("Foobar " (:ANCHOR (:C "Baz")) " " (:ANCHOR (:S "Biz"))
+ ;     " @@{# Boz} @{buz} @@{fizz}")
  )
 
 (defparameter *ref-pattern*
   (ppcre:create-scanner '(:SEQUENCE
                           (:NEGATIVE-LOOKBEHIND #\@)
                           "@{"
-                          (:negative-lookahead #\#)
+                          (:NEGATIVE-LOOKAHEAD #\#)
                           (:REGISTER (:GREEDY-REPETITION 1 NIL (:INVERTED-CHAR-CLASS #\})))
                           #\})))
 
@@ -89,7 +106,7 @@
   (let ((parts (ppcre:split *ref-pattern* line :with-registers-p t)))
     (mapcar-indexed (lambda (string i)
                       (if (evenp i)
-                          (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1")
+                          string
                           (list :INCLUDE string)))
                     parts)))
 
@@ -171,10 +188,11 @@ The subsequent parsers will be mapped over the result of the first parse.
 
 NOTE:
 There's at least one issue with this.
-`parse-refs' treats the double `@@' as an escape sequence.
-Instead of turning `@@{# foo}' into `@<a href='# foo'></a>' it turns it into `@{# foo}'.
-So if we first `parse-refs' and turn `@@{# foo}' into `@{# foo}' and then run `parse-anchors' after that
-then we're bypassing our escape mechanism."
+`parse-escapes' handles the double `@@' as an escape sequence.
+It truns `@@{# foo}' into `@{# foo}'.
+So if we first `parse-escapes' and turn `@@{# foo}' into `@{# foo}' and then run `parse-anchors' after that
+then we're bypassing our escape mechanism.
+So, `parse-escapes' must be after `parse-refs' and `parse-anchors' in the list of parsers."
   (cond
     ((null line) nil)
     ((null parsers) line)
@@ -189,9 +207,12 @@ then we're bypassing our escape mechanism."
         line))))
 
 (comment
- (parse-repeatedly (list #'parse-anchor #'parse-refs #'parse-math-text)
-                   "Foobar @{# Baz} \\begin{math}n + m\\end{math} buz @{fizz}")
- ; => ("Foobar " (:ANCHOR "Baz") " " (:MATH "n + m") " buz " (:INCLUDE "fizz"))
+ (parse-repeatedly (list #'parse-anchor #'parse-refs #'parse-math-text #'parse-escapes)
+                   "Foobar @{# Baz} @@{# Buzz} \\begin{math}n + m\\end{math} buz @{fizz}")
+ ; => ("Foobar " (:ANCHOR (:C "Baz")) " @{# Buzz} " (:MATH "n + m") " buz "
+ ;     (:INCLUDE "fizz"))
+ (parse-repeatedly (list #'parse-anchor #'parse-escapes)
+                   "(defvar foo @@{baz}")
  )
 
 (defun parse-prose-line (line)
@@ -219,12 +240,11 @@ then we're bypassing our escape mechanism."
                                 (list expr)))
                           (parse-refs line)))
    (parse-repeatedly
-    (list #'parse-refs #'parse-math-text #'parse-anchor)
+    (list #'parse-refs #'parse-math-text #'parse-anchor #'parse-escapes)
     line)))
 
 (comment
- ;; Testing out the `parse-repeatedly' behavior.
-
+ ;; Some examples to getting a feel for behavior.
  (parse-prose-line "\\n")
  ; => ("\\n")
  (parse-prose-line "")
@@ -266,38 +286,59 @@ then we're bypassing our escape mechanism."
 
 (defun read-code-block (line n stream)
   (prog ((def nil))
-        (multiple-value-bind (title operator modifiers)
-            (parse-block-start line)
+     (multiple-value-bind (title operator modifiers)
+         (parse-block-start line)
 
-          (when (null title)
-            (error 'user-error
-                   :format-control "block is missing title on line: ~s"
-                   :format-arguments (list n)))
+       (when (null title)
+         (error 'user-error
+                :format-control "block is missing title on line: ~s"
+                :format-arguments (list n)))
 
-          (setf def (make-textblockdef :line-number n
-                                       :kind :CODE
-                                       :title title
-                                       :operation (if (null operator) :DEFINE (first operator))
-                                       :modifiers (if (is-filename title)
-                                                      (cons :FILE modifiers)
-                                                      modifiers) )))
+       (setf def (make-textblockdef :line-number n
+                                    :kind :CODE
+                                    :title title
+                                    :operation (if (null operator) :DEFINE (first operator))
+                                    :modifiers (if (is-filename title)
+                                                   (cons :FILE modifiers)
+                                                   modifiers) )))
 
-        TEXT
-        (setf line (strip-line (read-line stream nil)))
-        (incf n)
-        (when (null line)
-          (error 'user-error
-                 :format-control "unexpected end of file in code block: ~s"
-                 :format-arguments (list (textblockdef-title def))))
+   TEXT
+     (setf line (strip-line (read-line stream nil)))
+     (incf n)
+     (when (null line)
+       (error 'user-error
+              :format-control "unexpected end of file in code block: ~s"
+              :format-arguments (list (textblockdef-title def))))
 
-        (when (ppcre:scan *block-start-pattern* line)
-          (return (values def line n)))
+     (when (ppcre:scan *block-start-pattern* line)
+       (return (values def line n)))
 
-        (vector-push-extend (parse-refs line)
-                            (textblock-lines (textblockdef-block def)))
-        (go TEXT)))
+     (vector-push-extend (parse-repeatedly (list #'parse-refs #'parse-escapes) line)
+                         (textblock-lines (textblockdef-block def)))
+     (go TEXT)))
 
 (comment
+ (let ((s (make-string-output-stream)))
+   (format s "(defvar includes-regex @@{escaped include}~%")
+   (format s "---~%")
+   (format s "~%")
+   (read-code-block "--- foo" 0 (make-string-input-stream (get-output-stream-string s))))
+
+;  => #S(TEXTBLOCKDEF
+;    :TITLE "foo"
+;    :BLOCK #S(TEXTBLOCK
+;              :LINES #(("(defvar includes-regex " "@{escaped include}"))
+;              :MODIFY-DATE 0)
+;    :KIND :CODE
+;    :LINE-NUMBER 0
+;    :FILE NIL
+;    :INDEX 0
+;    :OPERATION :DEFINE
+;    :MODIFIERS NIL
+;    :LANGUAGE "text")
+; "---"
+; 2
+
  ;; Just want to get a feel for what the def-table looks like
  (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
         (weaver (make-weaver-default file-defs)))
