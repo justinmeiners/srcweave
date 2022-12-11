@@ -39,4 +39,8 @@ Here's a link to the scratch.lit code block.
 
 And here's  a link to a scratch.lit section.
 
-@@{scratch.lit @{scratch.c}}
+@{## Scratch}
+
+And here's a link to a scratch.lit chapter.
+
+@{# My scratch lit file}

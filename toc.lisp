@@ -50,7 +50,7 @@
           file-def-pairs))
 
 (defun create-global-toc-linkmap (toc)
-  (do ((linkmap (make-hash-table))
+  (do ((linkmap (make-hash-table :test 'equal))
        (file (car toc) (car (cdr toc)))
        (toc toc (cdr toc)))
       ((null file) linkmap)
@@ -71,11 +71,14 @@
             (setf (gethash (cadr section) linkmap) link)))))))
 
 (comment
- (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit"))))
+ (let* ((file-defs (parse-lit-files '("dev.lit" "scratch.lit")))
+        (linkmap (create-global-toc-linkmap (create-global-toc file-defs)))
+        (res nil))
    (maphash
-    (lambda (k v)
-      (format t "~a: ~a~%" k v))
-    (create-global-toc-linkmap (create-global-toc file-defs))))
+    (lambda (k _)
+      (setf res (cons k res)))
+    linkmap)
+   (list res (gethash "Foobar" linkmap)))
 
 ; My test lit file: dev.html#c0
 ; Foobar: dev.html#s0:0
