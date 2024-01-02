@@ -5,7 +5,7 @@ BUNDLE=${PREFIX}/lib/bundle.lisp
 SRC_LISP=$(wildcard *.lisp)
 SRC_ASD=$(wildcard *.asd)
 
-.PHONY: all clean install
+.PHONY: all test clean install
 
 all: build bin/srcweave
 
@@ -19,6 +19,9 @@ build: $(SRC_LISP) $(SRC_ASD)
 bin/srcweave: gen-script.sh
 	./gen-script.sh "${PREFIX}/lib/srcweave" > bin/srcweave
 	chmod +x bin/srcweave
+
+test:
+	./tests/run.sh
 
 clean:
 	rm -f bin/srcweave

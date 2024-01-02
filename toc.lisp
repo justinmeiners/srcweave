@@ -56,7 +56,7 @@
 
 (defun weave-toc-section (section toc-filename chapter-counter section-counter)
   (destructuring-bind (_ name filename . contents) section
-    (format t "<li><a href=\"~a\">~a</a></li>"
+    (format t "<li><a href=\"~a\">~a</a></li>~%"
             (section-anchor
              section-counter
              chapter-counter
@@ -66,11 +66,11 @@
 (defun weave-toc-chapter (chapter show-chapters toc-filename chapter-counter)
   (destructuring-bind (_ name filename . sections) chapter
     (when show-chapters
-      (format t "<li><a href=\"~a\">~a</a>"
+      (format t "<li><a href=\"~a\">~a</a>~%"
               (chapter-anchor chapter-counter (weave-toc-filename filename toc-filename))
               name))
 
-    (format t "<ol>")
+    (format t "<ol>~%")
     (mapnil-indexed (lambda (section i)
                       (weave-toc-section
                        section
@@ -79,15 +79,15 @@
                        i
                        ))
                     sections)
-    (format t "</ol>")
+    (format t "</ol>~%")
     (when show-chapters
-      (format t "</li>"))))
+      (format t "</li>~%"))))
 
 (defun weave-toc (toc toc-filename)
   (let ((show-chapters (> (length toc) 1))
         (chapter-counter -1))
     (when show-chapters
-      (write-string "<ol>"))
+      (format t "<ol>~%"))
 
     (dolist (chapter toc)
       (incf chapter-counter)
@@ -96,4 +96,4 @@
                          toc-filename
                          chapter-counter))
     (when show-chapters
-      (write-string "</ol>"))))
+      (format t "</ol>"))))
