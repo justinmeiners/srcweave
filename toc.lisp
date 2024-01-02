@@ -20,85 +20,80 @@
 (defun section-anchor (section-index chapter-index &optional file)
   (format nil "~a#~a" (or file "") (section-id section-index chapter-index)))
 
-(defun textblockdef-create-toc (defs)
+(defun create-global-toc (file-def-pairs)
   (let ((chapter nil)
         (all-chapters nil))
-
-    (dolist (def defs)
-      (loop for line across (textblock-lines (textblockdef-block def)) do
+    (dolist (file-pair file-def-pairs)
+      (let ((filename (file-namestring (car file-pair)))
+            (defs (cdr file-pair)))
+        (dolist (def defs)
+          (loop for line across (textblock-lines (textblockdef-block def)) do
             (loop for expr in line do
-                  (when (commandp expr)
-                    (case (first expr)
-                      (:C
-                       (when chapter
-                         (push (nreverse chapter) all-chapters)
-                         (setf chapter nil))
-                       (push :C chapter)
-                       (push (second expr) chapter))
-                      (:S
-                       (push (list :S (second expr)) chapter)))))))
+              (when (commandp expr)
+                (case (first expr)
+                  (:C
+                   (when chapter
+                     (push (nreverse chapter) all-chapters)
+                     (setf chapter nil))
+                   ; chapters are built in reverse
+                   (setf chapter (nreverse (list :C (second expr) filename))))
+                  (:S
+                    (push (list :S (second expr) filename)
+                          chapter)))))))))
     (push (nreverse chapter) all-chapters)
-    all-chapters
     (nreverse all-chapters)))
 
+(defun ref-to-weave-filename (filename)
+  (concatenate 'string
+               (uiop:split-name-type filename)
+               ".html"))
 
-(defun create-global-toc (file-def-pairs)
-  (mapcar (lambda (pair)
-            (cons :FILE
-                  (cons (file-namestring (car pair))
-                        (textblockdef-create-toc (cdr pair)))))
-          file-def-pairs))
+(defun weave-toc-filename (filename toc-filename)
+  "don't append the filename at the beginning of the link if the TOC is on the same page as the content."
+  (if (equal filename toc-filename)
+      nil
+      (ref-to-weave-filename filename)))
 
+(defun weave-toc-section (section toc-filename chapter-counter section-counter)
+  (destructuring-bind (_ name filename . contents) section
+    (format t "<li><a href=\"~a\">~a</a></li>"
+            (section-anchor
+             section-counter
+             chapter-counter
+             (weave-toc-filename filename toc-filename))
+            name)))
 
-(defun weave-toc-section (name file chapter-counter section-counter)
-  (format t "<li><a href=\"~a\">~a</a></li>"
-          (section-anchor
-            section-counter
-            chapter-counter
-            file)
-          name))
+(defun weave-toc-chapter (chapter show-chapters toc-filename chapter-counter)
+  (destructuring-bind (_ name filename . sections) chapter
+    (when show-chapters
+      (format t "<li><a href=\"~a\">~a</a>"
+              (chapter-anchor chapter-counter (weave-toc-filename filename toc-filename))
+              name))
 
-(defun weave-toc-chapter (name sections file chapter-counter)
-  (when name
-    (format t "<li><a href=\"~a\">~a</a>"
-            (chapter-anchor chapter-counter file)
-            name))
+    (format t "<ol>")
+    (mapnil-indexed (lambda (section i)
+                      (weave-toc-section
+                       section
+                       toc-filename
+                       chapter-counter
+                       i
+                       ))
+                    sections)
+    (format t "</ol>")
+    (when show-chapters
+      (format t "</li>"))))
 
-  (format t "<ol>")
-  (mapnil-indexed (lambda (section i)
-                    (weave-toc-section
-                      (second section)
-                      file
-                      chapter-counter
-                      i))
-                  sections)
-  (format t "</ol>")
-  (when name
-    (format t "</li>")))
-
-(defun toc-count-chapters (toc)
-  (reduce (lambda (total file)
-            (+ total (length (cddr file))))
-          toc
-          :initial-value 0))
-
-(defun weave-toc (toc current-file)
-  (let ((show-chapters (> (toc-count-chapters toc) 1))
+(defun weave-toc (toc toc-filename)
+  (let ((show-chapters (> (length toc) 1))
         (chapter-counter -1))
     (when show-chapters
       (write-string "<ol>"))
 
-    (dolist (file-command toc)
-          (dolist (chapter (cddr file-command))
-            (incf chapter-counter)
-            (weave-toc-chapter (if show-chapters (second chapter) nil)
-                               (cddr chapter)
-                               (if (equal current-file
-                                          (second file-command))
-                                   nil
-                                   (concatenate 'string
-                                                (uiop:split-name-type (second file-command))
-                                                ".html"))
-                               chapter-counter)))
+    (dolist (chapter toc)
+      (incf chapter-counter)
+      (weave-toc-chapter chapter
+                         show-chapters
+                         toc-filename
+                         chapter-counter))
     (when show-chapters
       (write-string "</ol>"))))
