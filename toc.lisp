@@ -1,15 +1,15 @@
 ; Copyright (c) 2022 Justin Meiners
-; 
-; This program is free software: you can redistribute it and/or modify  
-; it under the terms of the GNU General Public License as published by  
+;
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation, version 2.
 ;
-; This program is distributed in the hope that it will be useful, but 
-; WITHOUT ANY WARRANTY; without even the implied warranty of 
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ; General Public License for more details.
 ;
-; You should have received a copy of the GNU General Public License 
+; You should have received a copy of the GNU General Public License
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :srcweave)
@@ -19,7 +19,7 @@
 
 (defun section-anchor (section-index chapter-index &optional file)
   (format nil "~a#~a" (or file "") (section-id section-index chapter-index)))
- 
+
 (defun textblockdef-create-toc (defs)
   (let ((chapter nil)
         (all-chapters nil))
@@ -30,7 +30,7 @@
                   (when (commandp expr)
                     (case (first expr)
                       (:C
-                       (when chapter 
+                       (when chapter
                          (push (nreverse chapter) all-chapters)
                          (setf chapter nil))
                        (push :C chapter)
@@ -41,10 +41,10 @@
     all-chapters
     (nreverse all-chapters)))
 
- 
+
 (defun create-global-toc (file-def-pairs)
   (mapcar (lambda (pair)
-            (cons :FILE 
+            (cons :FILE
                   (cons (file-namestring (car pair))
                         (textblockdef-create-toc (cdr pair)))))
           file-def-pairs))
@@ -102,4 +102,3 @@
                                chapter-counter)))
     (when show-chapters
       (write-string "</ol>"))))
-
