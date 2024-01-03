@@ -76,7 +76,8 @@
 
 (defun tangle (defs output-dir &key (ignore-dates nil)) 
   (let* ((output-dir (uiop:ensure-directory-pathname output-dir))
-         (defs-to-tangle (remove-if-not (lambda (def) (eq (textblockdef-kind def) :CODE)) defs))
+         (defs-to-tangle (remove-if (lambda (def) (or (not (eq (textblockdef-kind def) :CODE))
+                                                      (find :UNUSED (textblockdef-modifiers def)))) defs))
          (root-defs (remove-if-not (lambda (def)
                                      (and (eq (textblockdef-operation def) :DEFINE)
                                           (textblockdef-is-file def))
@@ -116,11 +117,7 @@
       (loop for def in root-defs do
         (incf (gethash (textblock-slug (textblockdef-title def)) reference-counts 0)))
 
-      (maphash (lambda (k _)
-                 (when (= (gethash k reference-counts 0) 0)
-                   (warn "block ~s was never used." k)))
-               block-table)
-      )
-))
-
-
+      (maphash (lambda (slug _)
+                 (when (= (gethash slug reference-counts 0) 0)
+                   (warn "block ~s was never used." slug)))
+               block-table))))

@@ -25,14 +25,16 @@
         ((equal x ":=") :REDEFINE)
         (t (error 'user-error
                   :format-control "unknown operation ~s"
-                  :format-arguments x))))
+                  :format-arguments (list x)))))
 
 (defun parse-modifier (x)
   (cond ((equal x "noWeave") :NO-WEAVE)
         ((equal x "hidden") :NO-WEAVE)
+        ((equal x "noTangle") :UNUSED)
+        ((equal x "unused") :UNUSED)
         (t (error 'user-error
                   :format-control "unknown modifier ~s"
-                  :format-arguments x))))
+                  :format-arguments (list x)))))
 
 (defparameter *ref-pattern*
   (ppcre:create-scanner '(:SEQUENCE

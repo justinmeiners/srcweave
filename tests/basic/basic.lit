@@ -1,14 +1,14 @@
 # Literate commands
 
 This document will teach you the basic commands of literate, while also acting as a test for all the basic features that are available.
-One of the great advantages of literate programming is that information and code like this are combined into one useful form.
+One of the great advantages of literate programming is that information and code are combined into one useful document.
 
 ## Including blocks
 
-Literate programming is about decomposing code into blocks and then composing them.
+Literate programming is about decomposing code into blocks and then organizing them in the way that makes most sense for the reader.
 The fundamental operation is block inclusion.
 
-For this example, we are going to use more complex example than "hello world"
+This next example is a little more complex than a "hello world"
 in order to test multiple inclusion levels.
 
 One way to design programs is to focus on algorithms and data structures.
@@ -223,6 +223,17 @@ int boring_function()
 ----
 But, you will notice it does not appear in the documentation.
 References to @{/hidden.c} will not have references.
+
+If you define a block which is never referenced, you will receive a warning.
+If this is intended you can use the `noTangle` modifier:
+
+--- /unused.lisp
+(defun square (x) (* x x))
+---
+
+--- /unused.lisp += --- noTangle
+(error "this will not be included")
+---
 
 ## Escaping the include syntax "@{...}"
 
