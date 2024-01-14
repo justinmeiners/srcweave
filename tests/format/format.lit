@@ -131,7 +131,7 @@ Fox
 </html>
 ---
 
-# Default HTML formatter.
+# Default HTML styler.
 
 ## Introduction
 
@@ -139,7 +139,7 @@ srcweave is designed in a modular UNIX way.
 One advantage of this is we can customize the appearence of HTML documentation
 without modifying the original program.
 
-We include a default format script that includes many formatting features,
+We include a default styler script that includes many styling features,
 such as KaTeX for math and google-prettyify for code highlighting.
 Feel free to customize it for your own needs.
 

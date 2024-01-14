@@ -22,7 +22,7 @@
 ;     - topological sort block names
 ;     - assign them langues in that order.
 ;     - Issue a warning if it is ambiguous.
-; - tell the formatter which types are used
+; - tell the styler which types are used
 ;     - use env var
 
 (defparameter *default-code-types*

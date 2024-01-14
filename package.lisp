@@ -22,11 +22,11 @@
     :weave
     :tangle
     *markdown-command*
-    *format-command*
+    *styler-command*
     "user-error"))
 
 (in-package :srcweave)
 
 (defparameter *markdown-command* "markdown")
-(defparameter *format-command* nil)
+(defparameter *styler-command* nil)
 (defparameter *trailing-newline* t)

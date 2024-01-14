@@ -44,10 +44,10 @@
          :arg-parser #'parse-empty-arg-as-null
          :long "md-compiler")
 
-  (:name :formatter
-         :description "Format program for beautifying raw HTML output. Try `srcweave-format`."
+  (:name :styler
+         :description "Styler program for beautifying raw HTML output. Try `srcweave-html-styler`."
          :arg-parser #'parse-empty-arg-as-null
-         :long "formatter")
+         :long "styler")
 
   (:name :force-output
          :description "Ignore file modification dates and tangle all files. For tangle only."
@@ -80,8 +80,8 @@
 
     (setf *markdown-command*
           (getf options :md-compiler *markdown-command*))
-    (setf *format-command*
-          (getf options :formatter *format-command*))
+    (setf *styler-command*
+          (getf options :styler *styler-command*))
     (setf *trailing-newline*
           (getf options :trailing-newline *trailing-newline*))
 

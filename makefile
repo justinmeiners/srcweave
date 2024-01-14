@@ -31,5 +31,5 @@ install:
 	rm -rf "${PREFIX}/lib/srcweave"
 	cp -r build "${PREFIX}/lib/srcweave"
 	install bin/srcweave "${PREFIX}/bin/"
-	install bin/srcweave-format "${PREFIX}/bin/"
-	install bin/srcweave-format-init "${PREFIX}/bin/"
+	install bin/srcweave-html-styler "${PREFIX}/bin/"
+	install bin/srcweave-html-styler-init "${PREFIX}/bin/"
