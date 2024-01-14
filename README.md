@@ -13,7 +13,7 @@
 
 ## .lit file examples
 
-The best part about `.lit` is you learn it just by reading the code!
+The best part about `.lit` is you learn it by just reading the code!
 Here are a few basic examples to get started with:
 
 - [Hello world](https://github.com/justinmeiners/srcweave/tree/master/tests/hello/hello.lit)
@@ -61,7 +61,7 @@ Multiple lit files can be specified, and the order they are listed in will deter
 
 Included in the installation is a tool called `srcweave-html-styler` which converts default HTML into beautiful documents.
 To use just add the `--style srcweave-html-styler` to any weave command.
-Fore example:
+For example:
 
     srcweave --weave doc/ --styler srcweave-html-styler index.lit
 
@@ -73,15 +73,15 @@ This downloads all the necessary JavaScript and CSS dependencies.
 
 **Math typesetting**
 
-Include the `-m` flag on `srcweave-styler-init` to download KaTex.
+Include the `-m` flag on `srcweave-html-styler-init` to download KaTex.
 See the examples for how to use `TeX` in .lit.
 
 **Custom styles**
 
 An easy way to customize the style is to edit the CSS file created by `srcweave-html-styler-init`.
-If that's insufficient you are encouraged to create your own styler program.
+If that's insufficient, you are encouraged to create your own styler program.
 Stylers are just programs that take raw HTML in `stdin` and format it to `stdout`.
-You can start from scratch, or modify a copy of `srcweave-html-styler`.
+You can start from scratch, or you can modify a copy of `srcweave-html-styler`.
 
 ## Comparison with Literate
 
@@ -109,7 +109,7 @@ The [vim plugin](https://github.com/zyedidia/literate.vim) should be compatible.
 You can migrate files from Literate with only minor changes.
 Here are the important differences:
 
-- In Literate produces a file for any block title with a file extension (eg. "out.txt").
+- Literate produces a file for any block title with a file extension (eg. "out.txt").
   In srcweave, all file blocks must be prefixed with a path (eg. `/out.txt` to create `out.txt` in the working directory).
 - Styling commands like `@add_css`, `@colorscheme` are ignored.
   All styling is done with a separate tool instead (see "Styling" section above).
