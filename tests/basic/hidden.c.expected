@@ -1,4 +1,4 @@
-int boring_function() 
+int boring_function()
 {
     return 10;
 }

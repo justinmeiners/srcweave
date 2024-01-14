@@ -1,15 +1,15 @@
 ; Copyright (c) 2022 Justin Meiners
-; 
-; This program is free software: you can redistribute it and/or modify  
-; it under the terms of the GNU General Public License as published by  
+;
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation, version 2.
 ;
-; This program is distributed in the hope that it will be useful, but 
-; WITHOUT ANY WARRANTY; without even the implied warranty of 
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ; General Public License for more details.
 ;
-; You should have received a copy of the GNU General Public License 
+; You should have received a copy of the GNU General Public License
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :srcweave)
@@ -59,7 +59,7 @@
          :long "no-trailing-newline"))
 
 
-(defun start-command () 
+(defun start-command ()
   (multiple-value-bind (options free-args)
       (opts:get-opts)
 
@@ -71,8 +71,8 @@
         :args "LITFILE")
       (opts:exit 0))
 
-    (when (null free-args) 
-      (error 'user-error :format-control "must provide at least one literate file")) 
+    (when (null free-args)
+      (error 'user-error :format-control "must provide at least one literate file"))
 
     (when (and (not (getf options :weave))
                (not (getf options :tangle)))
@@ -123,4 +123,3 @@
     (user-error (c)
       (format *error-output* "error: ~a~%" c)
       (opts:exit 2))))
-

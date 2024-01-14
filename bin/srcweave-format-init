@@ -4,7 +4,7 @@ set -e
 
 usage () {
     echo "srcweave-format-init [OPTIONS] DIR"
-    echo "-f\t force redownlood and regeneration" 
+    echo "-f\t force redownlood and regeneration"
     echo "-m\t download resources for math"
 }
 
@@ -13,7 +13,7 @@ do
   case $opt in
     f) FORCE="1"   ;;
     m) MATH="1"    ;;
-    *) usage 
+    *) usage
        exit 1
   esac
 done

@@ -222,7 +222,7 @@ Here is an `equation` on its own:
 Here is a `split` in an `equation`:
 
 \begin{equation}
-\begin{split}  
+\begin{split}
       a &=b+c\\
       &=e+f
 \end{split}

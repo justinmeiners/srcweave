@@ -13,5 +13,3 @@ TANGLE
 - test: include a block with an  empty line, it will pick up the indent even if it has nothing.
 - whitespace lines should be empty.
 - windows line endings? strip them from identifiers.
-
-

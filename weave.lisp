@@ -1,15 +1,15 @@
 ; Copyright (c) 2022 Justin Meiners
-; 
-; This program is free software: you can redistribute it and/or modify  
-; it under the terms of the GNU General Public License as published by  
+;
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation, version 2.
 ;
-; This program is distributed in the hope that it will be useful, but 
-; WITHOUT ANY WARRANTY; without even the implied warranty of 
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ; General Public License for more details.
 ;
-; You should have received a copy of the GNU General Public License 
+; You should have received a copy of the GNU General Public License
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :srcweave)
@@ -22,7 +22,7 @@
 ; One-to-one correspondence between .lit and .html files.
 ; The body of an .html file should look the same regardless of whether the .lit is in another context (like a book).
 
-(defstruct weaver 
+(defstruct weaver
   (use-table (make-hash-table) :type hash-table)
   (initial-def-table (make-hash-table) :type hash-table)
   (anchors (make-hash-table) :type hash-table)
@@ -115,8 +115,8 @@
 
 (defun weave-code-line (weaver line def)
   (loop for expr in line do
-        (cond ((stringp expr) (write-string (escape-html expr))) 
-              ((commandp expr) 
+        (cond ((stringp expr) (write-string (escape-html expr)))
+              ((commandp expr)
                (case (first expr)
                  (:INCLUDE (weave-include
                             (second expr)
@@ -210,8 +210,8 @@
 
 (defun weave-prose-line (weaver line def)
   (loop for expr in line do
-        (cond ((stringp expr) (write-string expr)) 
-              ((commandp expr) 
+        (cond ((stringp expr) (write-string expr))
+              ((commandp expr)
                (case (first expr)
                  (:INCLUDE (weave-include
                             (second expr)
@@ -236,7 +236,7 @@
                          (language (first args))
                          (extension (subseq (second args) 1)))
                     (setf (gethash extension (weaver-code-type-table weaver)) language)
-                    (push extension (weaver-used-extensions weaver)))) 
+                    (push extension (weaver-used-extensions weaver))))
                  (:MATHBLOCK
                   ; Put <code> tags in block so it displays tex nicely without JS.
                   (setf (weaver-used-math weaver) t)
@@ -249,7 +249,7 @@
                   (write-string "</code></div>"))
                  (:MATH
                   ; Use backticks to prevent markdown from formatting tex,
-                  ; for example treating _ as emphasis. 
+                  ; for example treating _ as emphasis.
                   (setf (weaver-used-math weaver) t)
                   (format t "<span class=\"math\">`~a`</span>"
                           (second expr)))
@@ -290,7 +290,7 @@
   (if (stringp *markdown-command*)
       (let ((md (uiop:launch-program
                   (split-whitespace *markdown-command*)
-                  :input :stream 
+                  :input :stream
                   :output stream
                   :error-output *error-output*)))
         (let ((*standard-output* (uiop:process-info-input md)))
@@ -329,7 +329,7 @@
                             :input (make-string-input-stream text))))))
 
 (defun weave-build-pathname (file-path base)
-  (uiop:merge-pathnames* 
+  (uiop:merge-pathnames*
     (make-pathname
       :name (pathname-name (uiop:ensure-pathname file-path :want-file t))
       :type (if (stringp *markdown-command*) "html" "md"))

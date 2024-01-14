@@ -13,4 +13,3 @@ do
     echo "freezing $FILE"
     cp $FILE $FILE.expected
 done
-

@@ -157,10 +157,10 @@
 
 (defun tangle-build-pathname (title base)
   (assert (uiop:string-prefix-p "/" title))
-  (uiop:merge-pathnames* 
+  (uiop:merge-pathnames*
     (uiop:ensure-pathname (subseq title 1)) base))
 
-(defun tangle (defs output-dir &key (ignore-dates nil)) 
+(defun tangle (defs output-dir &key (ignore-dates nil))
   (let* ((output-dir (uiop:ensure-directory-pathname output-dir))
          (defs-to-tangle (remove-if-not (lambda (def) (and (eq (textblockdef-kind def) :CODE)
                                                            (textblockdef-tanglable def))) defs))
@@ -170,11 +170,11 @@
                                      ) defs-to-tangle))
          (block-table (textblockdefs-apply defs-to-tangle))
          (dependencies (dependency-pairs-from-blocks block-table)))
-  
+
     (resolve-includes
       block-table
       (top-sort dependencies))
-  
+
     (loop for def in root-defs do
           (let* ((sym (textblockdef-title-sym def))
                  (file-path (tangle-build-pathname (textblockdef-title def) output-dir))
@@ -184,9 +184,9 @@
             (if (or ignore-dates
                     (>= (textblock-modify-date block)
                         (file-output-date-safe file-path) ))
-                (progn 
+                (progn
                   (format t "writing source: ~a~%" file-path)
-                  (ensure-directories-exist file-path) 
+                  (ensure-directories-exist file-path)
                   (with-open-file (s file-path
                                      :direction :output
                                      :if-does-not-exist :create

@@ -38,9 +38,9 @@ typedef struct ListNode
 } ListNode;
 ---
 
-An important algorithm is the length: 
+An important algorithm is the length:
 
---- algorithms 
+--- algorithms
 int list_length(ListNode* head)
 {
     int n = 0;
@@ -88,7 +88,7 @@ Lastly, there are some boring headers to include.
 ---
 
 We can also reference blocks in prose.
-Note that @{algorithms} is `O(n)`. 
+Note that @{algorithms} is `O(n)`.
 
 ## Formatting and whitespace
 
@@ -150,7 +150,7 @@ For example, every C program starts with a header.
 ---
 
 Then we have a main signature.
---- /append.c += 
+--- /append.c +=
 int main(int argc, const char* argv[])
 ---
 
@@ -184,7 +184,7 @@ int factorial(int n)
     if (n <= 0) return 1;
     return n * factorial(n - 1);
 }
---- 
+---
 This is pretty hard on the stack, so let's try a loop version:
 --- factorial :=
 int factorial(int n)
@@ -200,11 +200,11 @@ int factorial(int n)
 ---
 The block above should be using the final definition.
 
-## Modifiers 
+## Modifiers
 
 Notice also that it's not necessary to use a file extension, or
 for all the code in a file to be of the same type..
-For example `makefile` and other shell scripts can be 
+For example `makefile` and other shell scripts can be
 authored.
 
 --- /no-extension ---
@@ -216,7 +216,7 @@ Sometimes you have a block that's important for source, but too boring to includ
 You can use the modifier `noWeave` for these.
 Here is one:
 --- /hidden.c --- noWeave
-int boring_function() 
+int boring_function()
 {
     return 10;
 }

@@ -31,7 +31,7 @@ Clone the project and run the following:
 1. Create an `index.lit` file. For example:
 
         # Test
-        
+
         Test console output:
 
         --- hello.js
