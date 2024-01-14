@@ -310,7 +310,7 @@
                                  :if-exists :supersede
                                  :if-does-not-exist :create)
 
-    (if (not (stringp *format-command*))
+    (if (not (stringp *styler-command*))
         (weave-html weaver output-stream source-defs)
         ; we first write to data in RAM to get formatting info for environment variables.
         (let ((text (with-output-to-string (s)
@@ -322,8 +322,8 @@
           (setf (uiop:getenv *env-key-title*) (or (weaver-title weaver) ""))
           (setf (uiop:getenv *env-key-math*) (if (weaver-used-math weaver) "1" ""))
 
-           ; run format on weave results.
-          (uiop:run-program (split-whitespace *format-command*)
+           ; run styler on weave results.
+          (uiop:run-program (split-whitespace *styler-command*)
                             :output output-stream
                             :error-output t
                             :input (make-string-input-stream text))))))

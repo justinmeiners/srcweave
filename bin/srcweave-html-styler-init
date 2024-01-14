@@ -3,8 +3,8 @@
 set -e
 
 usage () {
-    echo "srcweave-format-init [OPTIONS] DIR"
-    echo "-f\t force redownlood and regeneration"
+    echo "srcweave-html-styler-init [OPTIONS] DIR"
+    echo "-f\t force redownload and regeneration"
     echo "-m\t download resources for math"
 }
 
