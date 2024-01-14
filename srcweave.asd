@@ -15,7 +15,6 @@
           (:file "utils")
           (:file "textblock")
           (:file "parse")
-          (:file "toc")
           (:file "code-types")
           (:file "weave")
           (:file "tangle")

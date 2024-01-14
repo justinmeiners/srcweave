@@ -14,11 +14,10 @@
 
 (in-package :srcweave)
 
-(defun strip-line (line)
-    (if (not line) line
-        (uiop:stripln line)))
-
 ; PARSE: Capture lines, determine commands, organize them into blocks.
+
+; DYNAMIC symbols created in this particular document
+(defparameter *doc-symols* (make-package "TEXTBLOCKS"))
 
 (defun parse-block-operator (x)
   (cond ((equal x "+=") :APPEND)
@@ -30,8 +29,8 @@
 (defun parse-modifier (x)
   (cond ((equal x "noWeave") :NO-WEAVE)
         ((equal x "hidden") :NO-WEAVE)
-        ((equal x "noTangle") :UNUSED)
-        ((equal x "unused") :UNUSED)
+        ((equal x "noTangle") :NO-TANGLE)
+        ((equal x "unused") :NO-TANGLE)
         (t (error 'user-error
                   :format-control "unknown modifier ~s"
                   :format-arguments (list x)))))
@@ -48,7 +47,7 @@
     (mapcar-indexed (lambda (string i)
                       (if (evenp i)
                           (ppcre:regex-replace-all "@@({[^}]+})" string "@\\1")
-                          (list :INCLUDE string)))
+                          (list :INCLUDE (intern string *doc-symols*))))
                     parts)))
 
 (defparameter *command-pattern*
@@ -119,15 +118,17 @@
 
 (defun parse-prose-line (line)
   (or 
-    (multiple-value-bind (match groups)
-        (ppcre:scan-to-strings *heading-pattern* line)
-      (if match
-          (list (case (length (aref groups 0))
-                  (1 (list :C (subseq line (length match))))
-                  (2 (list :S (subseq line (length match))))
-                  (otherwise line)))
-          nil))
-    (multiple-value-bind (match groups)
+   (multiple-value-bind (match groups)
+       (ppcre:scan-to-strings *heading-pattern* line)
+     (if match
+         (list (let ((level (length (aref groups 0))))
+           (if (find level '(1 2))
+               (list :HEADING
+                     (make-textheading :TITLE-SYM (intern (subseq line (length match)) *doc-symols*)
+                                       :LEVEL level))
+               line)))
+         nil))
+   (multiple-value-bind (match groups)
         (ppcre:scan-to-strings *command-pattern* line)
       (if match
           (list (list (intern (string-upcase (aref groups 0)) :KEYWORD)
@@ -172,9 +173,9 @@
 
           (setf def (make-textblockdef :line-number n
                                        :kind :CODE
-                                       :title title
+                                       :title-sym (intern title *doc-symols*)
                                        :operation (if (null operator) :DEFINE (first operator))
-                                       :modifiers (if (is-filename title)
+                                       :modifiers (if (is-file-title title)
                                                       (cons :FILE modifiers)
                                                       modifiers) )))
 
@@ -192,7 +193,6 @@
         (vector-push-extend (parse-refs line)
                             (textblock-lines (textblockdef-block def)))
         (go TEXT)))
-
 
 (defparameter *math-block-pattern*
   (ppcre:create-scanner
@@ -250,8 +250,6 @@
     (push line math-lines)
     (go MATH)))
 
-(defun is-filename (name)
-  (uiop:string-prefix-p "/" name)) 
 
 (defun read-lit (&optional (stream *standard-input*))
   (prog ((prose t)
@@ -294,19 +292,7 @@
     (file-write-date path)
     (file-namestring path)))
 
-
-(defun set-def-indexes (file-def-pairs)
-  (let ((counter 0))
-    (loop for pair in file-def-pairs do
-          (loop for def in (cdr pair) do
-                (setf (textblockdef-index def) counter)
-                (incf counter))))
-  file-def-pairs)
-
-
 (defun parse-lit-files (paths)
   "returns a list of pairs (path . list-of-block-defs)"
-    (set-def-indexes
-     (mapcar (lambda (path)
-              (cons path (parse-lit-file (uiop:ensure-pathname path)))) paths)))
-
+  (mapcar (lambda (path)
+            (cons path (parse-lit-file (uiop:ensure-pathname path)))) paths))

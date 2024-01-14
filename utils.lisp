@@ -69,16 +69,76 @@
                 :END-ANCHOR)
               string))
 
-(defparameter *slug-pattern*
-  (ppcre:create-scanner '(:INVERTED-CHAR-CLASS
-                          #\_ #\- #\.
-                          (:RANGE #\A #\Z)
-                          (:RANGE #\a #\z)
-                          (:RANGE #\0 #\9))))
-
-(defun string-to-slug (string)
-  (string-downcase (ppcre:regex-replace-all *slug-pattern* string "-")))
-
+(defun strip-line (line)
+    (if (not line) line
+        (uiop:stripln line)))
 
 (define-condition user-error (simple-error) ())
 
+(defun group-into-table (objs &key (test #'eql) (key #'identity))
+  "return a hash map of of lists where all objects in a list are equal."
+  (let ((groups (make-hash-table :test test)))
+    (map nil (lambda (x)
+               (push x (gethash (funcall key x) groups nil))) objs)
+    groups))
+
+(defun disambiguate-ids-into (objects id-table &key (key nil) (combine))
+  "Given list of object ids that are possibly not unique, we can identify duplicates and refine them until they are unique.
+   This is done by finding equivalent groups and calling `combine` to create a new key.
+   One way to use this is to attach a suffix containing a character not in the original id set."
+
+                                        ; group all objects that are equivalent
+  (let ((groups (group-into-table objects :test #'equal :key key)))
+    (maphash (lambda (key list)
+               (mapnil-indexed (lambda (object i)
+                                 (setf (gethash object id-table)
+                                       (if (= i 0) key
+                                           (funcall combine key i))))
+                               (reverse list))) groups)))
+
+(defun edge-from (edge) (car edge))
+(defun edge-to (edge) (cdr edge))
+
+(defun make-indegree-table (edges &key (test #'eq))
+  "count how many times each block is referenced."
+  (let ((indegree (make-hash-table :test test)))
+    ; this will get most of the vertices:
+    (dolist (e edges)
+      (setf (gethash (edge-to e) indegree) 0))
+    ; this will get the rest
+    (dolist (e edges)
+      (incf (gethash (edge-from e) indegree 0)))
+    indegree))
+
+(defun top-sort (edges &key (test #'eq))
+  "given a list of edges: (from . to)
+   find a topological ordering of the vertices implied by the edges."
+  (let ((from (make-indegree-table edges :test test))
+        (to (make-hash-table :test test))
+        (will-visit nil)
+        (counter 0)
+        (result))
+
+    (dolist (e edges)
+      (push (edge-from e) (gethash (edge-to e) to)))
+
+    ; prepare starting vertices
+    (maphash (lambda (v count)
+               (when (= count 0)
+                 (push v will-visit))) from)
+
+    (loop while will-visit do
+      (let ((remove (pop will-visit)))
+        (incf counter)
+        (push remove result)
+        (loop for v in (gethash remove to) do
+          (when (= (decf (gethash v from)) 0)
+            (push v will-visit)))))
+
+    (if (= (hash-table-count from) counter)
+        ; every vertex should be visited once
+        result
+        (error 'user-error :format-control "top-sort sort failed. cycle detected."))))
+
+(defun filename-replace-extension (filename replacement)
+  (concatenate 'string (uiop:split-name-type filename) replacement))

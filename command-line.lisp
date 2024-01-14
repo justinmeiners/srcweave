@@ -26,31 +26,31 @@
          :short #\h)
 
   (:name :tangle
-         :description "Generate source code files from blocks in the .lit file. Tangle is lazy and references file modification dates."
+         :description "Generate source code from documents, including creating files for corresponding blocks. Tangle is lazy and uses file modification dates to determine when to rebuild."
          :long "tangle"
          :short #\t
          :arg-parser (lambda (text)
                        (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :weave
-         :description "Generate HTML documentation files. One .html is output for each .lit input file."
+         :description "Generate HTML documentation for documents. One .html is output for each .lit input file."
          :long "weave"
          :short #\w
          :arg-parser (lambda (text)
                        (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :md-compiler
-         :description "Markdown command for formatting documents. Default: markdown."
+         :description "Specify which markdown command to use to convert to HTML. You must have one installed. Default: markdown."
          :arg-parser #'parse-empty-arg-as-null
          :long "md-compiler")
 
   (:name :formatter
-         :description "Formatter program for improving HTML output. Try srcweave-format"
+         :description "Format program for beautifying raw HTML output. Try `srcweave-format`."
          :arg-parser #'parse-empty-arg-as-null
          :long "formatter")
 
   (:name :force-output
-         :description "Ignore file modification dates and rewrite all files. For tangle only."
+         :description "Ignore file modification dates and tangle all files. For tangle only."
          :short #\f
          :long "force-output")
 
