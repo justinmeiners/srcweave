@@ -33,19 +33,19 @@
                        (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :weave
-         :description "Generate HTML documentation for documents. One .html is output for each .lit input file."
+         :description "Generate HTML documentation for documents. One .html is created for each .lit input file."
          :long "weave"
          :short #\w
          :arg-parser (lambda (text)
                        (uiop:ensure-pathname text :ensure-directory t)))
 
   (:name :md-compiler
-         :description "Specify which markdown command to use to convert to HTML. You must have one installed. Default: markdown."
+         :description "Specify a command for converting markdown to HTML. Default: markdown."
          :arg-parser #'parse-empty-arg-as-null
-         :long "md-compiler")
+         :long "markdown-converter")
 
   (:name :styler
-         :description "Styler program for beautifying raw HTML output. Try `srcweave-html-styler`."
+         :description "Specify a command for converting raw HTML into styled output. Recommended: `srcweave-html-styler`."
          :arg-parser #'parse-empty-arg-as-null
          :long "styler")
 
@@ -67,8 +67,25 @@
       (opts:describe
         :prefix "Literate programming system. Write code to be read by humans, not machines."
         :usage-of "srcweave"
-        :suffix "Created by Justin Meiners (2022)"
-        :args "LITFILE")
+        :args "LITFILE ...")
+
+      (write-lines
+       ""
+       "Styler:"
+       "  A styler program accepts HTML from stdin and outputs to stdout. It will also receive the following env vars:"
+       "    - LIT_TYPES: a space separated list of programming languages used in this file."
+       "    - LIT_TITLE: the title of this document."
+       "    - LIT_MATH: whether typeset math is desired for this file."
+       "")
+
+      (write-lines
+       "Markdown:"
+       "  A markdown converter accepts markdown (with HTML fragments) from stdin and produces HTML to stdout."
+       "  Gruber's perl implementation or discount are recommended choices."
+       "")
+
+      (write-line "Created by Justin Meiners (2022)")
+
       (opts:exit 0))
 
     (when (null free-args)

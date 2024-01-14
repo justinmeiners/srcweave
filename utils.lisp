@@ -142,3 +142,10 @@
 
 (defun filename-replace-extension (filename replacement)
   (concatenate 'string (uiop:split-name-type filename) replacement))
+
+(defun concat-lines (&rest lines)
+  (format nil "~{~a~^ ~}" lines))
+
+(defun write-lines (&rest lines)
+  (loop for l in lines do
+    (write-line l)))
