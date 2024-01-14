@@ -5,19 +5,31 @@
 
 **Features:**
 
-- Use any programming language for source. Write prose in markdown.
-- HTML documentation output with syntax highlighting (google-prettify) and math typesetting (KaTeX).
-- `make` friendly. Preserves file modification dates.
-- Cross-reference code across multiple files.
-- Compact UNIX philosophy design. Customize style and format with a shell script.
+- Compatible with all programming languages. Uses markdown for prose.
+- Great support for working with multiple files (even books!). Code and prose can be moved between files seamlessly.
+- Outputs clean HTML documentation that is easy to read and customize.
+- An optional beautifier includes syntax highlighting (google-prettify) and typeset math (KaTeX).
+- Focused UNIX philosphy design. It does one thing well and plays nice with other tools like `make` (preserves mod dates).
+
+## .lit file examples
+
+The best part about `.lit` is you learn it just by reading the code!
+Here are a few basic examples to get started with:
+
+- [Hello world](https://github.com/justinmeiners/srcweave/tree/master/tests/hello/hello.lit)
+- [Basic features](https://github.com/justinmeiners/srcweave/tree/master/tests/basic/basic.lit)
+
+For more in-depth examples, see my article:
+
+- [Write your own Virtual Machine](https://github.com/justinmeiners/lc3-vm)
 
 ## Getting started
 
 **Requirements**
 
-- POSIX compliant system with tsort and shell.
 - `sbcl` with [quicklisp](https://quicklisp.org) installed
-- markdown (I recommend the `discount` implementation).
+- `markdown` (I recommend the `discount` implementation).
+- Recommended: A POSIX system with `sh`, `curl` and related commands for `srcweave-html-styler`.
 
 **Install**
 
@@ -45,40 +57,31 @@ Clone the project and run the following:
 Both `--tangle` and `--weave` can be included in the same invocation.
 Multiple lit files can be specified, and the order they are listed in will determine the order of chapters and sections across files.
 
-**Formatting**
+## Styling
 
-The default HTML output is plain and unformatted.
-`srcweave` includes a UNIX style filter which provides nice output.
-To use it, you must first run
+Included in the installation is a tool called `srcweave-html-styler` which converts default HTML into beautiful documents.
+To use just add the `--style srcweave-html-styler` to any weave command.
+Fore example:
 
-    srcweave-format-init docs/
+    srcweave --weave doc/ --styler srcweave-html-styler index.lit
 
-This downloads all the necessary JavaScript/CSS dependencies for the project
-and only needs to be run once.
+Once for every project, you will also need to run:
 
-Then specify the formatter on the weave command:
+    srcweave-html-styler-init docs/
 
-    srcweave --weave doc/ --formatter srcweave-format index.lit
-
-If you need to customize the HTML output beyond CSS,
-you are encouraged to copy the `srcweave-format` shell script to make your own.
+This downloads all the necessary JavaScript and CSS dependencies.
 
 **Math typesetting**
 
-Include the `-m` flag on `srcweave-format-init` to download KaTex.
+Include the `-m` flag on `srcweave-styler-init` to download KaTex.
 See the examples for how to use `TeX` in .lit.
 
-## .lit file examples
+**Custom styles**
 
-The best part about .lit is you learn it just by reading the code!
-Here are a few basic examples to get started with:
-
-- [Hello world](https://github.com/justinmeiners/srcweave/tree/master/tests/hello/hello.lit)
-- [Basic features](https://github.com/justinmeiners/srcweave/tree/master/tests/basic/basic.lit)
-
-For more in-depth examples, see my article:
-
-- [Write your own Virtual Machine](https://github.com/justinmeiners/lc3-vm)
+An easy way to customize the style is to edit the CSS file created by `srcweave-html-styler-init`.
+If that's insufficient you are encouraged to create your own styler program.
+Stylers are just programs that take raw HTML in `stdin` and format it to `stdout`.
+You can start from scratch, or modify a copy of `srcweave-html-styler`.
 
 ## Comparison with Literate
 
@@ -106,18 +109,21 @@ The [vim plugin](https://github.com/zyedidia/literate.vim) should be compatible.
 You can migrate files from Literate with only minor changes.
 Here are the important differences:
 
-- In literate, any block named with a file extension becomes a file.
-  In srcweave, all file blocks must be prefixed with a path. For example `/out.txt` instead of `out.txt`.
-- formatting commands like `@add_css`, `@colorscheme` are ignored.
-  Use the shared `.css` created by `srcweave-format-init` or a custom format script.
-- no support for books `@book`. Just pass multiple `.lit` files to the tool in the order you want.
-- no support for `@change` commands. Use shell scripts in your build process, instead.
+- In Literate produces a file for any block title with a file extension (eg. "out.txt").
+  In srcweave, all file blocks must be prefixed with a path (eg. `/out.txt` to create `out.txt` in the working directory).
+- Styling commands like `@add_css`, `@colorscheme` are ignored.
+  All styling is done with a separate tool instead (see "Styling" section above).
+- No support for `@book`. Just pass multiple `.lit` files to `srcweave` in the order you want.
+- No support for `@change`. Adjusting `.lit` files should be done using your build process, such as with a shell script or makefile.
 - `@title` only sets the page title, it does not create a heading.
 - Prefer markdown headings `# heading 1`  and `## heading 2` instead of `@s`, etc.
 
 ## Acknowledgments
 
-Thanks to [Ryan Pendleton](https://github.com/rpendleton) for designing the document formatter.
+We are very grateful to all our contributors:
+
+- [Ryan Pendleton](https://github.com/rpendleton) for designing the document styler.
+- [Eric Ihli](https://github.com/eihli) for creating an [Emacs mode](https://github.com/eihli/lit-mode) and guiding new features.
 
 ## License
 
